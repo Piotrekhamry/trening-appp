@@ -77,30 +77,29 @@
 <body class="min-h-screen pb-24 md:pb-12 flex flex-col justify-between selection:bg-emerald-500 selection:text-white">
 
     <!-- Header Navigation Bar -->
-    <header class="sticky top-0 z-40 bg-cardbg/90 backdrop-blur-md border-b border-cardborder px-4 py-3 shadow-lg">
-        <div class="max-w-4xl mx-auto flex items-center justify-between">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 flex items-center justify-center text-white shadow-lg shadow-emerald-900/40">
-                    <i class="fa-solid font-bold fa-mountain-sun text-lg"></i>
-                </div>
-                <div>
-                    <h1 class="text-base sm:text-lg font-bold tracking-tight text-white leading-none">Góry & Siła</h1>
-                    <p class="text-xs text-emerald-400 font-medium mt-0.5" id="current-date-badge">Październik 2026</p>
-                </div>
-            </div>
-
-            <!-- Global Monthly Suggestion Pill -->
-            <div class="flex items-center space-x-2 bg-slate-800/80 border border-slate-700/80 px-3 py-1.5 rounded-full">
-                <i class="fa-solid fa-bullseye text-emerald-400 text-xs"></i>
-                <div class="text-xs font-semibold text-slate-200">
-                    Sugerowane: <span id="global-suggestion-text" class="text-emerald-400 font-bold">3×8</span>
-                </div>
-                <button onclick="openProgressionModal()" title="Edytuj cel miesiąca" class="text-slate-400 hover:text-white ml-1 p-1 transition">
-                    <i class="fa-solid fa-pen-to-square text-xs"></i>
-                </button>
+   <header class="w-full bg-cardbg border-b border-cardborder px-4 py-3 shadow-lg">
+    <div class="max-w-4xl mx-auto flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+            <!-- Nowa ikona logo z ramieniem i górami -->
+            <img src="icon.png" alt="Góry & Siła" class="w-10 h-10 rounded-xl object-cover shadow-lg border border-emerald-500/20">
+            <div>
+                <h1 class="text-base sm:text-lg font-bold tracking-tight text-white leading-none">Góry & Siła</h1>
+                <p class="text-xs text-emerald-400 font-medium mt-0.5" id="current-date-badge">Październik 2026</p>
             </div>
         </div>
-    </header>
+
+        <!-- Global Monthly Suggestion Pill -->
+        <div class="flex items-center space-x-2 bg-slate-800/80 border border-slate-700/80 px-3 py-1.5 rounded-full">
+            <i class="fa-solid fa-bullseye text-emerald-400 text-xs"></i>
+            <div class="text-xs font-semibold text-slate-200">
+                Sugerowane: <span id="global-suggestion-text" class="text-emerald-400 font-bold">3×8</span>
+            </div>
+            <button onclick="openProgressionModal()" title="Edytuj cel miesiąca" class="text-slate-400 hover:text-white ml-1 p-1 transition">
+                <i class="fa-solid fa-pen-to-square text-xs"></i>
+            </button>
+        </div>
+    </div>
+</header>
 
     <!-- Main Workspace Container -->
     <main class="max-w-4xl mx-auto w-full px-3 sm:px-4 pt-4 flex-grow space-y-5">
