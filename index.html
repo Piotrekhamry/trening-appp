@@ -114,14 +114,14 @@
         <div class="flex justify-between items-center">
           <div>
             <h2 class="text-lg font-bold text-white">Grafik Miesięcy</h2>
-            <p class="text-xs text-slate-400 mt-0.5">Prosty harmonogram i cele treningowe na kolejne miesiące</p>
+            <p class="text-xs text-slate-400 mt-0.5">Harmonogram progresji serii i powtórzeń</p>
           </div>
           <button onclick="addMonthPrompt()" class="px-3 py-1.5 bg-accent/20 hover:bg-accent/30 text-accentLight text-xs font-bold rounded-lg border border-accent/40 transition">
-            + Dodaj Miesiąc
+            + Dodaj Pozycję
           </button>
         </div>
 
-        <div id="monthly-plan-list" class="space-y-3 pt-2">
+        <div id="monthly-plan-list" class="space-y-2.5 pt-2">
           <!-- Dynamiczna lista -->
         </div>
       </div>
@@ -251,35 +251,32 @@
     };
 
     const DEFAULT_MONTHLY_PLAN = [
-      {
-        month: 'Miesiąc 1',
-        title: 'Adaptacja i Baza Tlenowa',
-        details: 'Treningi siłowe 3x w tygodniu + 1x bieg spokojny. Skupienie na technice i stawach.'
-      },
-      {
-        month: 'Miesiąc 2',
-        title: 'Budowanie Siły i Wytrzymałości',
-        details: 'Wprowadzenie cięższych przysiadów, kettlebell oraz marszów z plecakiem.'
-      },
-      {
-        month: 'Miesiąc 3',
-        title: 'Szczyt Formy w Górach',
-        details: 'Długie wyjścia w góry, symulacja podejść, trening obwodowy HIIT.'
-      },
-      {
-        month: 'Miesiąc 4',
-        title: 'Regeneracja i Podtrzymanie',
-        details: 'Lżejsza kalistenika, rolowanie i mobilność w celu odświeżenia organizmu.'
-      }
+      { month: 'Październik', target: '8x3' },
+      { month: 'Listopad', target: '9x3' },
+      { month: 'Grudzień', target: '10x3' },
+      { month: 'Styczeń', target: '11x3' },
+      { month: 'Luty', target: '12x3' },
+      { month: 'Marzec', target: '13x3' },
+      { month: 'Kwiecień', target: '14x3' },
+      { month: 'Maj', target: '15x3' },
+      { month: 'Czerwiec', target: '7x4' },
+      { month: 'Lipiec', target: '8x4' },
+      { month: 'Sierpień', target: '9x4' },
+      { month: 'Wrzesień', target: '10x4' },
+      { month: 'Październik II', target: '11x4' },
+      { month: 'Listopad II', target: '12x4' },
+      { month: 'Grudzień II', target: '13x4' },
+      { month: 'Styczeń II', target: '14x4' },
+      { month: 'Luty II', target: '15x4' }
     ];
 
     let state = {
       activeTab: 'flow',
       selectedDiscipline: 'silownia',
-      templates: JSON.parse(localStorage.getItem('gs_templates_v5')) || DEFAULT_TEMPLATES,
+      templates: JSON.parse(localStorage.getItem('gs_templates_v6')) || DEFAULT_TEMPLATES,
       workout: [],
       history: JSON.parse(localStorage.getItem('gs_history_v3')) || [],
-      monthlyPlan: JSON.parse(localStorage.getItem('gs_monthly_plan_v2')) || DEFAULT_MONTHLY_PLAN
+      monthlyPlan: JSON.parse(localStorage.getItem('gs_monthly_plan_v3')) || DEFAULT_MONTHLY_PLAN
     };
 
     state.workout = JSON.parse(JSON.stringify(state.templates[state.selectedDiscipline]));
@@ -481,47 +478,38 @@
     function renderMonthlyPlan() {
       const container = document.getElementById('monthly-plan-list');
       if (!state.monthlyPlan || state.monthlyPlan.length === 0) {
-        container.innerHTML = `<div class="text-center py-8 text-slate-500 text-xs">Brak zaplanowanych miesięcy. Kliknij "+ Dodaj Miesiąc".</div>`;
+        container.innerHTML = `<div class="text-center py-8 text-slate-500 text-xs">Brak zaplanowanych miesięcy. Kliknij "+ Dodaj Pozycję".</div>`;
         return;
       }
 
       container.innerHTML = state.monthlyPlan.map((item, idx) => `
-        <div class="bg-appBg p-4 rounded-xl border border-cardBorder flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div class="space-y-1">
-            <div class="flex items-center gap-2">
-              <span class="text-xs font-bold text-accentLight uppercase tracking-wider">${item.month}</span>
-              <h3 class="text-sm font-bold text-white">${item.title}</h3>
-            </div>
-            <p class="text-xs text-slate-400">${item.details}</p>
+        <div class="bg-appBg p-3 px-4 rounded-xl border border-cardBorder flex items-center justify-between">
+          <span class="text-xs font-bold text-slate-200">${item.month}</span>
+          <div class="flex items-center gap-4">
+            <span class="text-xs font-mono font-bold text-accentLight bg-accent/10 px-2.5 py-1 rounded-lg border border-accent/30">${item.target}</span>
+            <button onclick="removeMonth(${idx})" class="text-xs text-red-400/70 hover:text-red-400 font-semibold">Usuń</button>
           </div>
-          <button onclick="removeMonth(${idx})" class="text-xs text-red-400/70 hover:text-red-400 font-semibold self-start sm:self-center">Usuń</button>
         </div>
       `).join('');
     }
 
     function removeMonth(idx) {
-      if (confirm("Czy na pewno usunąć ten miesiąc z grafiku?")) {
+      if (confirm("Czy na pewno usunąć tę pozycję?")) {
         state.monthlyPlan.splice(idx, 1);
-        localStorage.setItem('gs_monthly_plan_v2', JSON.stringify(state.monthlyPlan));
+        localStorage.setItem('gs_monthly_plan_v3', JSON.stringify(state.monthlyPlan));
         renderMonthlyPlan();
       }
     }
 
     function addMonthPrompt() {
-      const monthNumber = state.monthlyPlan.length + 1;
-      const monthLabel = `Miesiąc ${monthNumber}`;
-      const title = prompt(`Nazwa/Cel główny dla ${monthLabel}:`, `Intensywny rozwój ${monthNumber}`);
-      if (!title) return;
+      const month = prompt("Nazwa miesiąca (np. Kwiecień):");
+      if (!month) return;
 
-      const details = prompt("Krótki opis / założenia dla tego miesiąca:", "Główne założenia treningowe...");
+      const target = prompt("Schemat serii i powtórzeń (np. 12x3):");
+      if (!target) return;
 
-      state.monthlyPlan.push({
-        month: monthLabel,
-        title: title,
-        details: details || 'Brak dodatkowych uwag.'
-      });
-
-      localStorage.setItem('gs_monthly_plan_v2', JSON.stringify(state.monthlyPlan));
+      state.monthlyPlan.push({ month, target });
+      localStorage.setItem('gs_monthly_plan_v3', JSON.stringify(state.monthlyPlan));
       renderMonthlyPlan();
     }
 
@@ -632,7 +620,7 @@
 
     function removeTemplateExercise(idx) {
       state.templates[editorDiscipline].splice(idx, 1);
-      localStorage.setItem('gs_templates_v5', JSON.stringify(state.templates));
+      localStorage.setItem('gs_templates_v6', JSON.stringify(state.templates));
       renderEditor();
     }
 
@@ -647,7 +635,7 @@
             ? [{ time: 30, calories: 200, done: false }]
             : [{ reps: 8, weight: 0, done: false }, { reps: 8, weight: 0, done: false }]
         });
-        localStorage.setItem('gs_templates_v5', JSON.stringify(state.templates));
+        localStorage.setItem('gs_templates_v6', JSON.stringify(state.templates));
         renderEditor();
       }
     }
