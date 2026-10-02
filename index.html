@@ -209,24 +209,44 @@
       silownia: [
         { name: 'Przysiad ze sztangą z tyłu', sets: [{ reps: 8, weight: 80, done: false }, { reps: 8, weight: 80, done: false }, { reps: 8, weight: 80, done: false }] },
         { name: 'Wyciskanie leżąc', sets: [{ reps: 8, weight: 70, done: false }, { reps: 8, weight: 70, done: false }, { reps: 8, weight: 70, done: false }] },
-        { name: 'Martwy ciąg', sets: [{ reps: 5, weight: 100, done: false }, { reps: 5, weight: 100, done: false }] }
+        { name: 'Martwy ciąg', sets: [{ reps: 5, weight: 100, done: false }, { reps: 5, weight: 100, done: false }] },
+        { name: 'Wyciskanie żołnierskie (OHP)', sets: [{ reps: 8, weight: 45, done: false }, { reps: 8, weight: 45, done: false }] },
+        { name: 'Wiosłowanie sztangą w opadzie', sets: [{ reps: 10, weight: 60, done: false }, { reps: 10, weight: 60, done: false }] }
       ],
       kettlebell: [
-        { name: 'Kettlebell Swing', sets: [{ reps: 20, weight: 16, done: false }, { reps: 20, weight: 16, done: false }, { reps: 20, weight: 16, done: false }] },
-        { name: 'TGU (Turkish Get-Up)', sets: [{ reps: 5, weight: 12, done: false }, { reps: 5, weight: 12, done: false }] }
+        { name: 'Kettlebell Swing (Oburącz)', sets: [{ reps: 20, weight: 16, done: false }, { reps: 20, weight: 16, done: false }, { reps: 20, weight: 16, done: false }] },
+        { name: 'TGU (Turkish Get-Up)', sets: [{ reps: 5, weight: 12, done: false }, { reps: 5, weight: 12, done: false }] },
+        { name: 'Goblet Squat', sets: [{ reps: 12, weight: 20, done: false }, { reps: 12, weight: 20, done: false }] },
+        { name: 'Clean & Press (Zarzut i wyciskanie)', sets: [{ reps: 8, weight: 16, done: false }, { reps: 8, weight: 16, done: false }] },
+        { name: 'Snatch (Rwanie Kettlebell)', sets: [{ reps: 15, weight: 12, done: false }, { reps: 15, weight: 12, done: false }] }
       ],
       kalistenika: [
-        { name: 'Podciąganie na drążku', sets: [{ reps: 8, weight: 0, done: false }, { reps: 8, weight: 0, done: false }] },
-        { name: 'Pompki na poręczach', sets: [{ reps: 10, weight: 0, done: false }, { reps: 10, weight: 0, done: false }] }
+        { name: 'Podciąganie na drążku (Nachwyt)', sets: [{ reps: 8, weight: 0, done: false }, { reps: 8, weight: 0, done: false }, { reps: 8, weight: 0, done: false }] },
+        { name: 'Pompki na poręczach (Dipy)', sets: [{ reps: 10, weight: 0, done: false }, { reps: 10, weight: 0, done: false }] },
+        { name: 'Pompki klasyczne', sets: [{ reps: 15, weight: 0, done: false }, { reps: 15, weight: 0, done: false }] },
+        { name: 'Wznosy nóg w zwisie na drążku', sets: [{ reps: 12, weight: 0, done: false }, { reps: 12, weight: 0, done: false }] },
+        { name: 'Pistolety (Przysiady na jednej nodze)', sets: [{ reps: 6, weight: 0, done: false }, { reps: 6, weight: 0, done: false }] }
       ],
       bieganie: [
-        { name: 'Bieg spokojny w strefie 2', sets: [{ time: 30, calories: 250, done: false }] }
+        { name: 'Rozgrzewkowy trucht', sets: [{ time: 10, calories: 80, done: false }] },
+        { name: 'Bieg spokojny w strefie 2', sets: [{ time: 40, calories: 350, done: false }] },
+        { name: 'Rytmy / Przyspieszenia', sets: [{ time: 10, calories: 100, done: false }] },
+        { name: 'Podbiegi pod górę', sets: [{ time: 15, calories: 150, done: false }] },
+        { name: 'Schłodzenie / Schodzenie z tętna', sets: [{ time: 10, calories: 60, done: false }] }
       ],
       gory: [
-        { name: 'Marsz z obciążonym plecakiem', sets: [{ reps: 1, weight: 12, done: false }] }
+        { name: 'Marsz pod górę z plecakiem', sets: [{ time: 90, calories: 750, done: false }] },
+        { name: 'Schodzenie / Zejście ze szczytu', sets: [{ time: 60, calories: 350, done: false }] },
+        { name: 'Trekking po płaskim / Granią', sets: [{ time: 120, calories: 800, done: false }] },
+        { name: 'Podejście strome / Wspinaczka trailowa', sets: [{ time: 45, calories: 450, done: false }] },
+        { name: 'Marsz powrotny do schroniska', sets: [{ time: 30, calories: 200, done: false }] }
       ],
       wolne: [
-        { name: 'Sesja rozciągania i rolowania', sets: [{ reps: 1, weight: 0, done: false }] }
+        { name: 'Rolowanie piankowym wałkiem (Pianka)', sets: [{ reps: 10, weight: 0, done: false }] },
+        { name: 'Rozciąganie taśmy tylnej (Nogi i pośladki)', sets: [{ reps: 10, weight: 0, done: false }] },
+        { name: 'Mobilizacja bioder i klatki piersiowej', sets: [{ reps: 10, weight: 0, done: false }] },
+        { name: 'Joga / Stretches pod kręgosłup', sets: [{ reps: 15, weight: 0, done: false }] },
+        { name: 'Spacer regeneracyjny i ćwiczenia oddechowe', sets: [{ reps: 20, weight: 0, done: false }] }
       ]
     };
 
@@ -268,13 +288,17 @@
     let state = {
       activeTab: 'flow',
       selectedDiscipline: 'silownia',
-      templates: JSON.parse(localStorage.getItem('gs_templates_v3')) || DEFAULT_TEMPLATES,
+      templates: JSON.parse(localStorage.getItem('gs_templates_v4')) || DEFAULT_TEMPLATES,
       workout: [],
       history: JSON.parse(localStorage.getItem('gs_history_v3')) || [],
       monthlyPlan: JSON.parse(localStorage.getItem('gs_monthly_plan_v3')) || DEFAULT_MONTHLY_PLAN
     };
 
     state.workout = JSON.parse(JSON.stringify(state.templates[state.selectedDiscipline]));
+
+    function isTimeBasedDiscipline(disciplineId) {
+      return disciplineId === 'bieganie' || disciplineId === 'gory';
+    }
 
     function switchTab(tabId) {
       state.activeTab = tabId;
@@ -330,7 +354,7 @@
         return;
       }
 
-      const isRunning = state.selectedDiscipline === 'bieganie';
+      const isTimeBased = isTimeBasedDiscipline(state.selectedDiscipline);
 
       container.innerHTML = state.workout.map((ex, exIdx) => `
         <div class="bg-cardBg p-4 rounded-2xl border border-cardBorder space-y-3">
@@ -342,7 +366,7 @@
           <div class="space-y-2">
             ${ex.sets.map((set, setIdx) => `
               <div class="flex items-center justify-between gap-2 bg-appBg/60 p-2 rounded-xl border border-cardBorder/40">
-                <span class="text-xs font-semibold text-slate-500 w-14">Seria ${setIdx + 1}</span>${isRunning ? `
+                <span class="text-xs font-semibold text-slate-500 w-14">Seria ${setIdx + 1}</span>${isTimeBased ? `
                   <div class="flex items-center gap-1.5">
                     <input type="number" value="${set.time !== undefined ? set.time : (set.reps || 30)}" onchange="updateSet(${exIdx}, ${setIdx}, 'time', this.value)" 
                       class="w-16 bg-slate-900 border border-cardBorder rounded-lg p-1 text-center text-xs text-white font-bold">
@@ -398,10 +422,10 @@
     }
 
     function addSet(exIdx) {
-      const isRunning = state.selectedDiscipline === 'bieganie';
+      const isTimeBased = isTimeBasedDiscipline(state.selectedDiscipline);
       const lastSet = state.workout[exIdx].sets[state.workout[exIdx].sets.length - 1] || {};
       
-      if (isRunning) {
+      if (isTimeBased) {
         state.workout[exIdx].sets.push({ time: lastSet.time || 30, calories: lastSet.calories || 200, done: false });
       } else {
         state.workout[exIdx].sets.push({ reps: lastSet.reps || 8, weight: lastSet.weight || 0, done: false });
@@ -417,11 +441,11 @@
     function addExercisePrompt() {
       const name = prompt("Podaj nazwę nowego ćwiczenia:");
       if (name) {
-        const isRunning = state.selectedDiscipline === 'bieganie';
+        const isTimeBased = isTimeBasedDiscipline(state.selectedDiscipline);
         state.workout.push({
           name: name,
           sets: [
-            isRunning 
+            isTimeBased 
               ? { time: 30, calories: 200, done: false } 
               : { reps: 8, weight: 0, done: false }
           ]
@@ -436,12 +460,12 @@
       let totalCalories = 0;
       let completedSets = 0;
 
-      const isRunning = state.selectedDiscipline === 'bieganie';
+      const isTimeBased = isTimeBasedDiscipline(state.selectedDiscipline);
 
       state.workout.forEach(ex => {
         ex.sets.forEach(s => {
           if (s.done) {
-            if (isRunning) {
+            if (isTimeBased) {
               totalTime += (parseFloat(s.time) || parseFloat(s.reps) || 0);
               totalCalories += (parseFloat(s.calories) || parseFloat(s.weight) || 0);
             } else {
@@ -455,7 +479,7 @@
       const labelEl = document.getElementById('tonnage-label');
       const valEl = document.getElementById('total-tonnage');
 
-      if (isRunning) {
+      if (isTimeBased) {
         if (labelEl) labelEl.textContent = 'Czas & Kalorie (Łącznie)';
         valEl.textContent = `${totalTime} min / ${totalCalories} kcal`;
       } else {
@@ -552,12 +576,12 @@
       let totalCalories = 0;
       let setsDone = 0;
 
-      const isRunning = state.selectedDiscipline === 'bieganie';
+      const isTimeBased = isTimeBasedDiscipline(state.selectedDiscipline);
 
       state.workout.forEach(ex => {
         ex.sets.forEach(s => {
           if (s.done) {
-            if (isRunning) {
+            if (isTimeBased) {
               totalTime += (parseFloat(s.time) || parseFloat(s.reps) || 0);
               totalCalories += (parseFloat(s.calories) || parseFloat(s.weight) || 0);
             } else {
@@ -578,7 +602,7 @@
         id: Date.now(),
         date: new Date().toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
         discipline: discObj ? discObj.name : 'Trening',
-        tonnage: isRunning ? `${totalTime} min | ${totalCalories} kcal` : `${tonnage} kg`,
+        tonnage: isTimeBased ? `${totalTime} min | ${totalCalories} kcal` : `${tonnage} kg`,
         setsCount: setsDone,
         exercisesCount: state.workout.length
       };
@@ -653,7 +677,7 @@
 
     function removeTemplateExercise(idx) {
       state.templates[editorDiscipline].splice(idx, 1);
-      localStorage.setItem('gs_templates_v3', JSON.stringify(state.templates));
+      localStorage.setItem('gs_templates_v4', JSON.stringify(state.templates));
       renderEditor();
     }
 
@@ -661,14 +685,14 @@
       const name = prompt("Nazwa nowego ćwiczenia do szablonu:");
       if (name) {
         if (!state.templates[editorDiscipline]) state.templates[editorDiscipline] = [];
-        const isRunning = editorDiscipline === 'bieganie';
+        const isTimeBased = isTimeBasedDiscipline(editorDiscipline);
         state.templates[editorDiscipline].push({
           name: name,
-          sets: isRunning 
+          sets: isTimeBased 
             ? [{ time: 30, calories: 200, done: false }]
             : [{ reps: 8, weight: 0, done: false }, { reps: 8, weight: 0, done: false }]
         });
-        localStorage.setItem('gs_templates_v3', JSON.stringify(state.templates));
+        localStorage.setItem('gs_templates_v4', JSON.stringify(state.templates));
         renderEditor();
       }
     }
