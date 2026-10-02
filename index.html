@@ -88,6 +88,21 @@
           </div>
         </div>
       </div>
+  
+  <!-- Statystyki i Timer -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- Stoper Przerw -->
+        <div class="bg-cardBg p-4 rounded-2xl border border-cardBorder flex items-center justify-between">
+          <div>
+            <span class="text-xs text-slate-400 font-medium block uppercase tracking-wider">Stoper Przerw</span>
+            <span id="rest-display" class="text-2xl font-mono font-bold text-accentLight">00:00</span>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="startRestTimer(60)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 rounded-lg border border-cardBorder">60s</button>
+            <button onclick="startRestTimer(90)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 rounded-lg border border-cardBorder">90s</button>
+            <button onclick="resetRestTimer()" class="px-3 py-1.5 bg-red-950/40 hover:bg-red-900/40 text-red-400 text-xs font-bold rounded-lg border border-red-900/30">Reset</button>
+          </div>
+        </div>
 
       <!-- Lista Ćwiczeń -->
       <section class="space-y-4">
