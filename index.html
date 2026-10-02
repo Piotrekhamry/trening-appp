@@ -1,98 +1,102 @@
 <!DOCTYPE html>
-<html lang="pl" class="dark">
+<html lang="pl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Góry & Siła 2.0</title>
+  <title>Góry & Siła</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     tailwind.config = {
-      darkMode: 'class',
       theme: {
         extend: {
           colors: {
-            brand: {
-              50: '#ecfdf5',
-              100: '#d1fae5',
-              500: '#10b981',
-              600: '#059669',
-              700: '#047857',
-              900: '#064e3b',
-            }
+            appBg: '#0b1120',
+            cardBg: '#131d31',
+            cardBorder: '#1c2b44',
+            accent: '#059669',
+            accentLight: '#34d399'
           }
         }
       }
     }
   </script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased pb-12">
+<body class="bg-appBg text-slate-100 min-h-screen font-sans antialiased pb-12">
 
-  <!-- GŁÓWNY KONTENER -->
   <div class="max-w-4xl mx-auto px-4 py-6">
 
-    <!-- NAGŁÓWEK I JEDYNKA NAWIGACJA -->
-    <header class="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 bg-slate-900/80 p-4 rounded-2xl border border-slate-800 shadow-lg">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-brand-500/20 text-brand-500 flex items-center justify-center font-black text-xl border border-brand-500/30">
-          Δ
-        </div>
-        <div>
-          <h1 class="text-xl font-bold tracking-tight text-white">Góry & Siła <span class="text-xs bg-brand-500/20 text-brand-500 px-2 py-0.5 rounded-full border border-brand-500/30">2.0</span></h1>
-          <p class="text-xs text-slate-400">Dziennik Treningowy & Przygotowanie Górskie</p>
+    <!-- NAGŁÓWEK Z OBRAZEM Z TŁA -->
+    <div class="relative overflow-hidden rounded-2xl border border-cardBorder bg-cardBg mb-6 shadow-xl">
+      <img src="image_3bed76.png" alt="Góry & Siła Banner" class="w-full h-40 object-cover object-center opacity-30">
+      <div class="absolute inset-0 bg-gradient-to-t from-cardBg via-cardBg/60 to-transparent flex items-end p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between w-full gap-4">
+          <div>
+            <h1 class="text-2xl font-bold tracking-tight text-white">Góry & Siła</h1>
+            <p class="text-xs text-slate-400 font-medium">System Treningowy & Przygotowanie w Góry</p>
+          </div>
+          <div class="bg-cardBg/90 px-3 py-1.5 rounded-lg border border-cardBorder text-xs text-accentLight font-semibold">
+            Sugerowane: 3 x 8
+          </div>
         </div>
       </div>
+    </div>
 
-      <!-- POJEDYNCZY PASEK NAWIGACYJNY -->
-      <nav class="flex bg-slate-950/80 p-1 rounded-xl border border-slate-800 text-sm font-medium w-full sm:w-auto">
-        <button onclick="switchTab('flow')" id="tab-btn-flow" class="tab-btn flex-1 sm:flex-none px-4 py-2 rounded-lg transition-all text-slate-400 hover:text-white">
-          Trening
-        </button>
-        <button onclick="switchTab('editor')" id="tab-btn-editor" class="tab-btn flex-1 sm:flex-none px-4 py-2 rounded-lg transition-all text-slate-400 hover:text-white">
-          Szablony
-        </button>
-        <button onclick="switchTab('history')" id="tab-btn-history" class="tab-btn flex-1 sm:flex-none px-4 py-2 rounded-lg transition-all text-slate-400 hover:text-white">
-          Historia
-        </button>
-        <button onclick="switchTab('hiit')" id="tab-btn-hiit" class="tab-btn flex-1 sm:flex-none px-4 py-2 rounded-lg transition-all text-slate-400 hover:text-white">
-          Stoper HIIT
-        </button>
-      </nav>
-    </header>
+    <!-- POJEDYNCZY PASEK NAWIGACJI (BEZ IKON) -->
+    <nav class="flex bg-cardBg p-1.5 rounded-xl border border-cardBorder text-xs sm:text-sm font-semibold mb-6">
+      <button onclick="switchTab('flow')" id="tab-btn-flow" class="tab-btn flex-1 py-2.5 rounded-lg transition-all text-slate-400 hover:text-white">
+        Trening (Flow)
+      </button>
+      <button onclick="switchTab('editor')" id="tab-btn-editor" class="tab-btn flex-1 py-2.5 rounded-lg transition-all text-slate-400 hover:text-white">
+        Edytor Szablonu
+      </button>
+      <button onclick="switchTab('history')" id="tab-btn-history" class="tab-btn flex-1 py-2.5 rounded-lg transition-all text-slate-400 hover:text-white">
+        Historia & Staty
+      </button>
+      <button onclick="switchTab('hiit')" id="tab-btn-hiit" class="tab-btn flex-1 py-2.5 rounded-lg transition-all text-slate-400 hover:text-white">
+        Stoper Interwałowy
+      </button>
+    </nav>
 
     <!-- TAB 1: TRENING (FLOW) -->
     <main id="tab-flow" class="tab-content space-y-6">
       <!-- Wybór Dyscypliny -->
-      <section class="bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
-        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block mb-3">Wybierz Dyscyplinę</span>
+      <section class="bg-cardBg p-5 rounded-2xl border border-cardBorder">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <span class="text-xs font-bold text-accentLight uppercase tracking-wider block">Inteligentna Sugestia</span>
+            <h2 id="current-discipline-title" class="text-xl font-bold text-white mt-1">Siłownia</h2>
+          </div>
+        </div>
+
         <div class="grid grid-cols-2 sm:grid-cols-6 gap-2" id="discipline-selector">
-          <!-- Generowane dynamicznie w JS -->
+          <!-- Wstrzykiwane z JS -->
         </div>
       </section>
 
-      <!-- Widgety Stanu (Timer Przerw + Tonaż) -->
+      <!-- Statystyki i Timer -->
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <!-- Timer Przerw -->
-        <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 flex items-center justify-between">
+        <!-- Stoper Przerw -->
+        <div class="bg-cardBg p-4 rounded-2xl border border-cardBorder flex items-center justify-between">
           <div>
-            <span class="text-xs text-slate-400 font-medium block">Stoper Przerwy</span>
-            <span id="rest-display" class="text-2xl font-mono font-bold text-emerald-400">00:00</span>
+            <span class="text-xs text-slate-400 font-medium block uppercase tracking-wider">Stoper Przerw</span>
+            <span id="rest-display" class="text-2xl font-mono font-bold text-accentLight">00:00</span>
           </div>
           <div class="flex gap-2">
-            <button onclick="startRestTimer(60)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-semibold rounded-lg border border-slate-700 transition">60s</button>
-            <button onclick="startRestTimer(90)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-semibold rounded-lg border border-slate-700 transition">90s</button>
-            <button onclick="resetRestTimer()" class="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-semibold rounded-lg border border-red-500/20 transition">↺</button>
+            <button onclick="startRestTimer(60)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 rounded-lg border border-cardBorder">60s</button>
+            <button onclick="startRestTimer(90)" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 rounded-lg border border-cardBorder">90s</button>
+            <button onclick="resetRestTimer()" class="px-3 py-1.5 bg-red-950/40 hover:bg-red-900/40 text-red-400 text-xs font-bold rounded-lg border border-red-900/30">Reset</button>
           </div>
         </div>
 
-        <!-- Tonaż Treningu -->
-        <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 flex items-center justify-between">
+        <!-- Tonaż -->
+        <div class="bg-cardBg p-4 rounded-2xl border border-cardBorder flex items-center justify-between">
           <div>
-            <span class="text-xs text-slate-400 font-medium block">Łączny Tonaż Sesji</span>
+            <span class="text-xs text-slate-400 font-medium block uppercase tracking-wider">Tonaż / Objętość Sesji</span>
             <span id="total-tonnage" class="text-2xl font-bold text-amber-400">0 kg</span>
           </div>
           <div class="text-right">
-            <span class="text-xs text-slate-400 font-medium block">Ukończone Serie</span>
-            <span id="completed-sets-count" class="text-xl font-bold text-slate-200">0</span>
+            <span class="text-xs text-slate-400 font-medium block">Serie Wykonane</span>
+            <span id="completed-sets-count" class="text-lg font-bold text-slate-200">0</span>
           </div>
         </div>
       </div>
@@ -100,53 +104,48 @@
       <!-- Lista Ćwiczeń -->
       <section class="space-y-4">
         <div class="flex items-center justify-between">
-          <h2 class="text-lg font-bold text-white flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full bg-brand-500"></span>
-            Plan Treningowy
-          </h2>
-          <button onclick="addExercisePrompt()" class="px-3 py-1.5 bg-brand-500/10 hover:bg-brand-500/20 text-brand-400 text-xs font-semibold rounded-lg border border-brand-500/30 transition">
-            + Dodaj ćwiczenie
+          <h3 class="text-base font-bold text-white">Ćwiczenia</h3>
+          <button onclick="addExercisePrompt()" class="px-3 py-1.5 bg-accent/20 hover:bg-accent/30 text-accentLight text-xs font-bold rounded-lg border border-accent/40 transition">
+            + Dodaj Ćwiczenie
           </button>
         </div>
 
         <div id="workout-exercise-list" class="space-y-4">
-          <!-- Dynamiczna lista ćwiczeń -->
+          <!-- Dynamiczna lista -->
         </div>
       </section>
 
-      <!-- Przycisk Zakończenia Treningu -->
-      <div class="pt-4">
-        <button onclick="finishWorkout()" class="w-full py-3.5 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl shadow-lg shadow-brand-600/20 transition">
-          Zakończ i Zapisz Trening
-        </button>
-      </div>
+      <!-- Zapis Treningu -->
+      <button onclick="finishWorkout()" class="w-full py-4 bg-accent hover:bg-emerald-600 text-white font-bold rounded-xl shadow-lg transition">
+        Zakończ i Zapisz Trening
+      </button>
     </main>
 
     <!-- TAB 2: EDYTOR SZABLONU -->
     <main id="tab-editor" class="tab-content hidden space-y-6">
-      <div class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800 space-y-4">
-        <h2 class="text-lg font-bold text-white">Edytor Domyślnych Szablonów</h2>
-        <p class="text-xs text-slate-400">Modyfikuj domyślne zestawy ćwiczeń przypisane do poszczególnych dyscyplin.</p>
-        
-        <div class="flex gap-2 mb-4" id="editor-discipline-picker">
-          <!-- Wybór dyscypliny w edytorze -->
+      <div class="bg-cardBg p-6 rounded-2xl border border-cardBorder space-y-4">
+        <h2 class="text-lg font-bold text-white">Edytor Szablonów Treningowych</h2>
+        <p class="text-xs text-slate-400">Dostosuj domyślne zestawy ćwiczeń dla każdej z dyscyplin.</p>
+
+        <div class="grid grid-cols-2 sm:grid-cols-6 gap-2 mb-4" id="editor-discipline-picker">
+          <!-- Wstrzykiwane z JS -->
         </div>
 
         <div id="editor-exercise-list" class="space-y-3">
-          <!-- Lista edytowanych ćwiczeń -->
+          <!-- Wstrzykiwane z JS -->
         </div>
 
-        <button onclick="addTemplateExercisePrompt()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-semibold rounded-xl border border-slate-700 transition">
-          + Dodaj nowe ćwiczenie do szablonu
+        <button onclick="addTemplateExercisePrompt()" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-xl border border-cardBorder transition">
+          + Dodaj Ćwiczenie do Szablonu
         </button>
       </div>
     </main>
 
     <!-- TAB 3: HISTORIA -->
     <main id="tab-history" class="tab-content hidden space-y-6">
-      <div class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800 space-y-4">
+      <div class="bg-cardBg p-6 rounded-2xl border border-cardBorder space-y-4">
         <div class="flex justify-between items-center">
-          <h2 class="text-lg font-bold text-white">Historia Treningów</h2>
+          <h2 class="text-lg font-bold text-white">Historia i Statystyki</h2>
           <button onclick="clearHistory()" class="text-xs text-red-400 hover:underline">Wyczyść historię</button>
         </div>
         <div id="history-list" class="space-y-3">
@@ -155,38 +154,35 @@
       </div>
     </main>
 
-    <!-- TAB 4: STOPER HIIT / TABATA -->
+    <!-- TAB 4: STOPER HIIT -->
     <main id="tab-hiit" class="tab-content hidden space-y-6">
-      <div class="bg-slate-900/60 p-6 rounded-2xl border border-slate-800 text-center space-y-6">
-        <h2 class="text-lg font-bold text-white">Stoper Interwałowy / Tabata</h2>
-        
-        <!-- Stan HIIT -->
-        <div class="py-8 bg-slate-950/60 rounded-2xl border border-slate-800">
-          <span id="hiit-phase" class="text-sm font-bold uppercase tracking-widest text-slate-400 block mb-2">Gotowy</span>
-          <span id="hiit-timer" class="text-6xl font-mono font-black text-white">00:20</span>
+      <div class="bg-cardBg p-6 rounded-2xl border border-cardBorder text-center space-y-6">
+        <h2 class="text-lg font-bold text-white">Stoper Interwałowy</h2>
+
+        <div class="py-8 bg-appBg rounded-2xl border border-cardBorder">
+          <span id="hiit-phase" class="text-xs font-bold uppercase tracking-widest text-slate-400 block mb-2">Gotowy</span>
+          <span id="hiit-timer" class="text-5xl font-mono font-black text-white">00:20</span>
           <span id="hiit-round" class="text-xs text-slate-500 block mt-3">Runda 1 / 8</span>
         </div>
 
-        <!-- Ustawienia Interwałów -->
         <div class="grid grid-cols-3 gap-3 text-left">
           <div>
-            <label class="text-xs text-slate-400 block mb-1">Praca (s)</label>
-            <input type="number" id="hiit-work-input" value="20" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-center text-white font-bold">
+            <label class="text-xs text-slate-400 block mb-1 font-semibold">Praca (s)</label>
+            <input type="number" id="hiit-work-input" value="20" class="w-full bg-slate-900 border border-cardBorder rounded-lg p-2 text-center text-white font-bold text-sm">
           </div>
           <div>
-            <label class="text-xs text-slate-400 block mb-1">Odpoczynek (s)</label>
-            <input type="number" id="hiit-rest-input" value="10" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-center text-white font-bold">
+            <label class="text-xs text-slate-400 block mb-1 font-semibold">Odpoczynek (s)</label>
+            <input type="number" id="hiit-rest-input" value="10" class="w-full bg-slate-900 border border-cardBorder rounded-lg p-2 text-center text-white font-bold text-sm">
           </div>
           <div>
-            <label class="text-xs text-slate-400 block mb-1">Rundy</label>
-            <input type="number" id="hiit-rounds-input" value="8" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-2 text-center text-white font-bold">
+            <label class="text-xs text-slate-400 block mb-1 font-semibold">Rundy</label>
+            <input type="number" id="hiit-rounds-input" value="8" class="w-full bg-slate-900 border border-cardBorder rounded-lg p-2 text-center text-white font-bold text-sm">
           </div>
         </div>
 
-        <!-- Przyciski Sterujące -->
         <div class="flex gap-3">
-          <button onclick="toggleHIIT()" id="hiit-start-btn" class="flex-1 py-3 bg-brand-600 hover:bg-brand-500 text-white font-bold rounded-xl transition">Start</button>
-          <button onclick="resetHIIT()" class="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl border border-slate-700 transition">Reset</button>
+          <button onclick="toggleHIIT()" id="hiit-start-btn" class="flex-1 py-3 bg-accent hover:bg-emerald-600 text-white font-bold rounded-xl transition text-sm">Start</button>
+          <button onclick="resetHIIT()" class="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-xl border border-cardBorder transition text-sm">Reset</button>
         </div>
       </div>
     </main>
@@ -194,154 +190,142 @@
   </div>
 
   <script>
-    // --- STAN APLIKACJI ---
+    // --- DANE DYSCYPLIN I SZABLONÓW (BEZ IKON) ---
     const DISCIPLINES = [
-      { id: 'silownia', name: 'Siłownia', icon: '🏋️' },
-      { id: 'kettlebell', name: 'Kettlebell', icon: '🔔' },
-      { id: 'kalistenika', name: 'Kalistenika', icon: '🤸' },
-      { id: 'bieganie', name: 'Bieganie', icon: '🏃' },
-      { id: 'gory', name: 'Góry', icon: '🏔️' },
-      { id: 'wolne', name: 'Wolne', icon: '🧘' }
+      { id: 'silownia', name: 'Siłownia' },
+      { id: 'kettlebell', name: 'Kettlebell' },
+      { id: 'kalistenika', name: 'Kalistenika' },
+      { id: 'bieganie', name: 'Bieganie' },
+      { id: 'gory', name: 'Góry (Wyjazd)' },
+      { id: 'wolne', name: 'Wolne / Regen' }
     ];
 
     const DEFAULT_TEMPLATES = {
       silownia: [
-        { name: 'Przysiad ze sztangą', sets: [{ reps: 8, weight: 80, done: false }, { reps: 8, weight: 80, done: false }, { reps: 8, weight: 80, done: false }] },
+        { name: 'Przysiad ze sztangą z tyłu', sets: [{ reps: 8, weight: 80, done: false }, { reps: 8, weight: 80, done: false }, { reps: 8, weight: 80, done: false }] },
         { name: 'Wyciskanie leżąc', sets: [{ reps: 8, weight: 70, done: false }, { reps: 8, weight: 70, done: false }, { reps: 8, weight: 70, done: false }] },
         { name: 'Martwy ciąg', sets: [{ reps: 5, weight: 100, done: false }, { reps: 5, weight: 100, done: false }] }
       ],
       kettlebell: [
-        { name: 'KB Swing', sets: [{ reps: 20, weight: 16, done: false }, { reps: 20, weight: 16, done: false }, { reps: 20, weight: 16, done: false }] },
-        { name: 'TGU (Get-Up)', sets: [{ reps: 5, weight: 12, done: false }, { reps: 5, weight: 12, done: false }] }
+        { name: 'Kettlebell Swing', sets: [{ reps: 20, weight: 16, done: false }, { reps: 20, weight: 16, done: false }, { reps: 20, weight: 16, done: false }] },
+        { name: 'TGU (Turkish Get-Up)', sets: [{ reps: 5, weight: 12, done: false }, { reps: 5, weight: 12, done: false }] }
       ],
       kalistenika: [
         { name: 'Podciąganie na drążku', sets: [{ reps: 8, weight: 0, done: false }, { reps: 8, weight: 0, done: false }] },
-        { name: 'Pompki na poręczach (Dipy)', sets: [{ reps: 10, weight: 0, done: false }, { reps: 10, weight: 0, done: false }] }
+        { name: 'Pompki na poręczach', sets: [{ reps: 10, weight: 0, done: false }, { reps: 10, weight: 0, done: false }] }
       ],
       bieganie: [
-        { name: 'Bieg spokojny (Z2)', sets: [{ reps: 1, weight: 0, done: false }] }
+        { name: 'Bieg spokojny w strefie 2', sets: [{ reps: 1, weight: 0, done: false }] }
       ],
       gory: [
-        { name: 'Marsz z obciążeniem', sets: [{ reps: 1, weight: 10, done: false }] }
+        { name: 'Marsz z obciążonym plecakiem', sets: [{ reps: 1, weight: 12, done: false }] }
       ],
       wolne: [
-        { name: 'Rozciąganie & Mobility', sets: [{ reps: 1, weight: 0, done: false }] }
+        { name: 'Sesja rozciągania i rolowania', sets: [{ reps: 1, weight: 0, done: false }] }
       ]
     };
 
     let state = {
       activeTab: 'flow',
       selectedDiscipline: 'silownia',
-      templates: JSON.parse(localStorage.getItem('gs_templates')) || DEFAULT_TEMPLATES,
+      templates: JSON.parse(localStorage.getItem('gs_templates_v2')) || DEFAULT_TEMPLATES,
       workout: [],
-      history: JSON.parse(localStorage.getItem('gs_history')) || []
+      history: JSON.parse(localStorage.getItem('gs_history_v2')) || []
     };
 
-    // Obraz załadowanych ćwiczeń na starcie
     state.workout = JSON.parse(JSON.stringify(state.templates[state.selectedDiscipline]));
 
-    // --- NAWIGACJA ZAKŁADEK ---
+    // --- PRZEŁĄCZANIE ZAKŁADEK ---
     function switchTab(tabId) {
       state.activeTab = tabId;
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.querySelectorAll('.tab-btn').forEach(el => {
-        el.classList.remove('bg-brand-500/20', 'text-brand-400', 'border', 'border-brand-500/30');
+        el.classList.remove('bg-accent', 'text-white', 'shadow-md');
         el.classList.add('text-slate-400');
       });
 
       document.getElementById(`tab-${tabId}`).classList.remove('hidden');
       const activeBtn = document.getElementById(`tab-btn-${tabId}`);
-      activeBtn.classList.add('bg-brand-500/20', 'text-brand-400', 'border', 'border-brand-500/30');
+      activeBtn.classList.add('bg-accent', 'text-white', 'shadow-md');
       activeBtn.classList.remove('text-slate-400');
 
       if (tabId === 'history') renderHistory();
       if (tabId === 'editor') renderEditor();
     }
 
-    // --- SYGNAŁ DŹWIĘKOWY (Web Audio API) ---
-    function playBeep() {
-      try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.value = 880; // A5
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.5);
-        setTimeout(() => ctx.close(), 500);
-      } catch(e) {}
-    }
-
-    // --- RENDEROWANIE TRENINGU (FLOW) ---
+    // --- SELEKTOR DYSCYPLIN ---
     function renderDisciplineSelector() {
       const container = document.getElementById('discipline-selector');
       container.innerHTML = DISCIPLINES.map(d => `
         <button onclick="selectDiscipline('${d.id}')" 
-          class="p-2.5 rounded-xl border text-center transition flex flex-col items-center justify-center gap-1 ${
+          class="p-2.5 rounded-xl border text-center transition font-semibold text-xs ${
             state.selectedDiscipline === d.id 
-              ? 'bg-brand-500/20 border-brand-500/50 text-white' 
-              : 'bg-slate-950/40 border-slate-800 text-slate-400 hover:bg-slate-800/50'
+              ? 'bg-accent/20 border-accent text-accentLight' 
+              : 'bg-appBg border-cardBorder text-slate-400 hover:bg-slate-800/40'
           }">
-          <span class="text-lg">${d.icon}</span>
-          <span class="text-xs font-semibold">${d.name}</span>
+          ${d.name}
         </button>
       `).join('');
+
+      const activeDiscObj = DISCIPLINES.find(d => d.id === state.selectedDiscipline);
+      if (activeDiscObj) {
+        document.getElementById('current-discipline-title').textContent = activeDiscObj.name;
+      }
     }
 
     function selectDiscipline(id) {
       state.selectedDiscipline = id;
-      state.workout = JSON.stringify(state.templates[id]) ? JSON.parse(JSON.stringify(state.templates[id])) : [];
+      state.workout = JSON.parse(JSON.stringify(state.templates[id] || []));
       renderDisciplineSelector();
       renderWorkout();
     }
 
+    // --- RENDEROWANIE TRENINGU ---
     function renderWorkout() {
       const container = document.getElementById('workout-exercise-list');
-      if (state.workout.length === 0) {
-        container.innerHTML = `<div class="text-center py-8 text-slate-500 text-sm">Brak ćwiczeń w tej dyscyplinie. Dodaj pierwsze!</div>`;
+      if (!state.workout || state.workout.length === 0) {
+        container.innerHTML = `<div class="text-center py-8 text-slate-500 text-xs">Brak ćwiczeń w tej dyscyplinie. Kliknij "+ Dodaj Ćwiczenie", aby rozpocząć.</div>`;
         updateStats();
         return;
       }
 
       container.innerHTML = state.workout.map((ex, exIdx) => `
-        <div class="bg-slate-900/60 p-4 rounded-2xl border border-slate-800 space-y-3">
-          <div class="flex justify-between items-center">
-            <h3 class="font-bold text-slate-200 text-sm">${ex.name}</h3>
-            <button onclick="removeExercise(${exIdx})" class="text-xs text-red-400/60 hover:text-red-400">Usuń</button>
+        <div class="bg-cardBg p-4 rounded-2xl border border-cardBorder space-y-3">
+          <div class="flex justify-between items-center border-b border-cardBorder/60 pb-2">
+            <h4 class="font-bold text-slate-100 text-sm">${ex.name}</h4>
+            <button onclick="removeExercise(${exIdx})" class="text-xs text-red-400/70 hover:text-red-400 font-semibold">Usuń</button>
           </div>
 
           <div class="space-y-2">
             ${ex.sets.map((set, setIdx) => `
-              <div class="flex items-center justify-between gap-3 bg-slate-950/40 p-2 rounded-xl border border-slate-800/60">
-                <span class="text-xs font-medium text-slate-500 w-12">Seria ${setIdx + 1}</span>
+              <div class="flex items-center justify-between gap-2 bg-appBg/60 p-2 rounded-xl border border-cardBorder/40">
+                <span class="text-xs font-semibold text-slate-500 w-14">Seria ${setIdx + 1}</span>
                 
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1.5">
                   <input type="number" value="${set.reps}" onchange="updateSet(${exIdx},${setIdx}, 'reps', this.value)" 
-                    class="w-16 bg-slate-800 border border-slate-700 rounded-lg p-1 text-center text-xs text-white font-semibold">
+                    class="w-14 bg-slate-900 border border-cardBorder rounded-lg p-1 text-center text-xs text-white font-bold">
                   <span class="text-xs text-slate-500">powt.</span>
                 </div>
 
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-1.5">
                   <input type="number" value="${set.weight}" onchange="updateSet(${exIdx},${setIdx}, 'weight', this.value)" 
-                    class="w-16 bg-slate-800 border border-slate-700 rounded-lg p-1 text-center text-xs text-white font-semibold">
+                    class="w-14 bg-slate-900 border border-cardBorder rounded-lg p-1 text-center text-xs text-white font-bold">
                   <span class="text-xs text-slate-500">kg</span>
                 </div>
 
                 <button onclick="toggleSet(${exIdx},${setIdx})" 
-                  class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold transition ${
+                  class="px-3 py-1.5 rounded-lg text-xs font-bold transition ${
                     set.done 
-                      ? 'bg-brand-500 text-slate-950 shadow-md shadow-brand-500/20' 
-                      : 'bg-slate-800 text-slate-500 hover:bg-slate-700'
+                      ? 'bg-accent text-white shadow-sm' 
+                      : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
                   }">
-                  ✓
+                  ${set.done ? 'OK' : 'Zrób'}
                 </button>
               </div>
             `).join('')}
           </div>
 
-          <button onclick="addSet(${exIdx})" class="text-xs font-semibold text-brand-400 hover:underline pt-1 block">+ Dodaj serię</button>
+          <button onclick="addSet(${exIdx})" class="text-xs font-bold text-accentLight hover:underline block pt-1">+ Dodaj serię</button>
         </div>
       `).join('');
 
@@ -362,7 +346,7 @@
     }
 
     function addSet(exIdx) {
-      const lastSet = state.workout[exIdx].sets[state.workout[exIdx].sets.length - 1] || { reps: 10, weight: 0 };
+      const lastSet = state.workout[exIdx].sets[state.workout[exIdx].sets.length - 1] || { reps: 8, weight: 0 };
       state.workout[exIdx].sets.push({ reps: lastSet.reps, weight: lastSet.weight, done: false });
       renderWorkout();
     }
@@ -377,7 +361,7 @@
       if (name) {
         state.workout.push({
           name: name,
-          sets: [{ reps: 10, weight: 0, done: false }]
+          sets: [{ reps: 8, weight: 0, done: false }]
         });
         renderWorkout();
       }
@@ -431,7 +415,22 @@
       document.getElementById('rest-display').textContent = `${m}:${s}`;
     }
 
-    // --- ZAPIS TRENINGU DO HISTORII ---
+    function playBeep() {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = 880;
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        gain.gain.exponentialRampToValueAtTime(0.00001, ctx.currentTime + 0.4);
+        setTimeout(() => ctx.close(), 400);
+      } catch(e) {}
+    }
+
+    // --- HISTORIA ---
     function finishWorkout() {
       let tonnage = 0;
       let setsDone = 0;
@@ -450,49 +449,49 @@
         return;
       }
 
+      const discObj = DISCIPLINES.find(d => d.id === state.selectedDiscipline);
       const record = {
         id: Date.now(),
         date: new Date().toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
-        discipline: DISCIPLINES.find(d => d.id === state.selectedDiscipline)?.name || 'Trening',
+        discipline: discObj ? discObj.name : 'Trening',
         tonnage: tonnage,
         setsCount: setsDone,
         exercisesCount: state.workout.length
       };
 
       state.history.unshift(record);
-      localStorage.setItem('gs_history', JSON.stringify(state.history));
-      alert("Trening został pomyślnie zapisany w historii!");
+      localStorage.setItem('gs_history_v2', JSON.stringify(state.history));
+      alert("Trening został zapisany w historii!");
       switchTab('history');
     }
 
-    // --- HISTORIA ---
     function renderHistory() {
       const container = document.getElementById('history-list');
       if (state.history.length === 0) {
-        container.innerHTML = `<div class="text-center py-8 text-slate-500 text-sm">Brak zapisanych treningów w historii.</div>`;
+        container.innerHTML = `<div class="text-center py-8 text-slate-500 text-xs">Brak zapisanych treningów.</div>`;
         return;
       }
 
       container.innerHTML = state.history.map(item => `
-        <div class="bg-slate-950/50 p-4 rounded-xl border border-slate-800 flex justify-between items-center">
+        <div class="bg-appBg p-4 rounded-xl border border-cardBorder flex justify-between items-center">
           <div>
             <div class="flex items-center gap-2">
-              <span class="font-bold text-white text-sm">${item.discipline}</span>
-              <span class="text-xs text-slate-500">${item.date}</span>
+              <span class="font-bold text-white text-xs">${item.discipline}</span>
+              <span class="text-[10px] text-slate-500">${item.date}</span>
             </div>
-            <span class="text-xs text-slate-400 block mt-1">${item.exercisesCount} ćwiczeń | ${item.setsCount} ukończonych serii</span>
+            <span class="text-xs text-slate-400 block mt-1">${item.exercisesCount} ćwiczeń | ${item.setsCount} serii</span>
           </div>
           <div class="text-right">
-            <span class="text-base font-bold text-amber-400">${item.tonnage} kg</span>
+            <span class="text-sm font-bold text-amber-400">${item.tonnage} kg</span>
           </div>
         </div>
       `).join('');
     }
 
     function clearHistory() {
-      if (confirm("Czy na pewno chcesz usunąć całą historię treningów?")) {
+      if (confirm("Czy usunąć całą historię?")) {
         state.history = [];
-        localStorage.removeItem('gs_history');
+        localStorage.removeItem('gs_history_v2');
         renderHistory();
       }
     }
@@ -503,17 +502,22 @@
     function renderEditor() {
       const picker = document.getElementById('editor-discipline-picker');
       picker.innerHTML = DISCIPLINES.map(d => `
-        <button onclick="setEditorDiscipline('${d.id}')" class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
-          editorDiscipline === d.id ? 'bg-brand-500/20 text-brand-400 border-brand-500/30' : 'bg-slate-950 border-slate-800 text-slate-400'
+        <button onclick="setEditorDiscipline('${d.id}')" class="p-2 rounded-lg text-xs font-semibold border transition ${
+          editorDiscipline === d.id ? 'bg-accent/20 text-accentLight border-accent' : 'bg-appBg border-cardBorder text-slate-400'
         }">${d.name}</button>
       `).join('');
 
       const container = document.getElementById('editor-exercise-list');
       const list = state.templates[editorDiscipline] || [];
 
+      if (list.length === 0) {
+        container.innerHTML = `<div class="text-center py-4 text-slate-500 text-xs">Szablon jest pusty.</div>`;
+        return;
+      }
+
       container.innerHTML = list.map((ex, idx) => `
-        <div class="flex justify-between items-center bg-slate-950/40 p-3 rounded-xl border border-slate-800">
-          <span class="text-sm font-semibold text-slate-300">${ex.name}</span>
+        <div class="flex justify-between items-center bg-appBg p-3 rounded-xl border border-cardBorder">
+          <span class="text-xs font-semibold text-slate-300">${ex.name}</span>
           <button onclick="removeTemplateExercise(${idx})" class="text-xs text-red-400 hover:underline">Usuń</button>
         </div>
       `).join('');
@@ -526,27 +530,27 @@
 
     function removeTemplateExercise(idx) {
       state.templates[editorDiscipline].splice(idx, 1);
-      localStorage.setItem('gs_templates', JSON.stringify(state.templates));
+      localStorage.setItem('gs_templates_v2', JSON.stringify(state.templates));
       renderEditor();
     }
 
     function addTemplateExercisePrompt() {
-      const name = prompt("Nazwa ćwiczenia do szablonu:");
+      const name = prompt("Nazwa nowego ćwiczenia do szablonu:");
       if (name) {
         if (!state.templates[editorDiscipline]) state.templates[editorDiscipline] = [];
         state.templates[editorDiscipline].push({
           name: name,
-          sets: [{ reps: 10, weight: 0, done: false }, { reps: 10, weight: 0, done: false }]
+          sets: [{ reps: 8, weight: 0, done: false }, { reps: 8, weight: 0, done: false }]
         });
-        localStorage.setItem('gs_templates', JSON.stringify(state.templates));
+        localStorage.setItem('gs_templates_v2', JSON.stringify(state.templates));
         renderEditor();
       }
     }
 
-    // --- STOPER HIIT / TABATA ---
+    // --- STOPER HIIT ---
     let hiitInterval = null;
     let hiitRunning = false;
-    let hiitPhase = 'work'; // 'work' | 'rest'
+    let hiitPhase = 'work';
     let hiitCurrentRound = 1;
     let hiitTimeLeft = 20;
 
@@ -604,10 +608,10 @@
       const phaseEl = document.getElementById('hiit-phase');
       if (hiitPhase === 'work') {
         phaseEl.textContent = 'PRACA';
-        phaseEl.className = 'text-sm font-bold uppercase tracking-widest text-brand-400 block mb-2';
+        phaseEl.className = 'text-xs font-bold uppercase tracking-widest text-accentLight block mb-2';
       } else {
         phaseEl.textContent = 'ODPOCZYNEK';
-        phaseEl.className = 'text-sm font-bold uppercase tracking-widest text-amber-400 block mb-2';
+        phaseEl.className = 'text-xs font-bold uppercase tracking-widest text-amber-400 block mb-2';
       }
 
       const totalRounds = document.getElementById('hiit-rounds-input').value || 8;
