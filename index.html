@@ -100,7 +100,44 @@
         </div>
     </div>
 </header>
+...
+        </div>
+    </div>
+</header>
 
+<!-- OSOBNA SEKCJA STOPERA INTERWAŁOWEGO -->
+<div class="bg-[#161f2e] border border-[#263347] rounded-2xl p-5 max-w-md mx-auto my-6 shadow-xl">
+    <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-stopwatch text-emerald-400"></i> Stoper Interwałowy
+    </h2>
+
+    <!-- Ustawienia czasów -->
+    <div class="grid grid-cols-2 gap-4 mb-5">
+        <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50">
+            <label class="block text-xs text-emerald-400 font-semibold mb-1">PRACA (sekund)</label>
+            <input type="number" id="work-time" value="45" onchange="resetIntervalTimer()" class="w-full bg-transparent text-white font-bold text-xl outline-none">
+        </div>
+        <div class="bg-slate-800/60 p-3 rounded-xl border border-slate-700/50">
+            <label class="block text-xs text-amber-400 font-semibold mb-1">PRZERWA (sekund)</label>
+            <input type="number" id="rest-time" value="15" onchange="resetIntervalTimer()" class="w-full bg-transparent text-white font-bold text-xl outline-none">
+        </div>
+    </div>
+
+    <!-- Tarcza stopera -->
+    <div class="text-center py-6 bg-slate-900/80 rounded-2xl border border-slate-800 mb-5">
+        <span id="timer-status" class="text-xs uppercase tracking-widest text-emerald-400 font-bold block mb-1">PRACA</span>
+        <span id="timer-display" class="text-5xl font-extrabold text-white font-mono">00:45</span>
+    </div>
+
+    <!-- Przyciski -->
+    <div class="flex gap-3">
+        <button onclick="startIntervalTimer()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition shadow-lg active:scale-95">Start</button>
+        <button onclick="pauseIntervalTimer()" class="bg-slate-700 hover:bg-slate-600 text-white font-bold px-5 py-3 rounded-xl transition active:scale-95">Pauza</button>
+        <button onclick="resetIntervalTimer()" class="bg-slate-800 hover:bg-slate-700 text-slate-400 font-bold px-4 py-3 rounded-xl transition active:scale-95"><i class="fa-solid fa-rotate-left"></i></button>
+    </div>
+</div>
+
+<!-- DALEJ RESZTA STRONY (np. dyscypliny, lista ćwiczeń...) -->
     <!-- Main Workspace Container -->
     <main class="max-w-4xl mx-auto w-full px-3 sm:px-4 pt-4 flex-grow space-y-5">
 
