@@ -101,19 +101,28 @@
     </div>
 </header>
 
-<!-- PASEK PRZEŁĄCZANIA ZAKŁADEK -->
-<div class="max-w-md mx-auto px-4 mt-4 mb-2 flex gap-2">
-    <button id="tab-btn-workout" onclick="switchTab('workout')" class="flex-1 py-2.5 px-4 rounded-xl font-bold text-sm bg-emerald-600 text-white shadow-lg transition flex items-center justify-center gap-2">
-        <i class="fa-solid fa-dumbbell"></i> Dziennik
+<!-- JEDEN SPÓJNY PASEK NAWIGACJI (4 ZAKŁADKI) -->
+<div class="flex bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800 max-w-2xl mx-auto my-4 shadow-xl">
+    <button id="nav-btn-workout" onclick="switchMainTab('workout')" class="flex-1 py-2.5 px-2 sm:px-3 rounded-xl font-bold text-xs sm:text-sm bg-emerald-600 text-white shadow-lg transition flex items-center justify-center gap-1.5">
+        <i class="fa-solid fa-play"></i> Trening
     </button>
-    <button id="tab-btn-timer" onclick="switchTab('timer')" class="flex-1 py-2.5 px-4 rounded-xl font-bold text-sm bg-slate-800 text-slate-400 hover:text-white shadow-lg transition flex items-center justify-center gap-2">
-        <i class="fa-solid fa-stopwatch"></i> Stoper
+
+    <button id="nav-btn-template" onclick="switchMainTab('template')" class="flex-1 py-2.5 px-2 sm:px-3 rounded-xl font-bold text-xs sm:text-sm text-slate-400 hover:text-white transition flex items-center justify-center gap-1.5">
+        <i class="fa-solid fa-sliders"></i> Edytor
+    </button>
+
+    <button id="nav-btn-history" onclick="switchMainTab('history')" class="flex-1 py-2.5 px-2 sm:px-3 rounded-xl font-bold text-xs sm:text-sm text-slate-400 hover:text-white transition flex items-center justify-center gap-1.5">
+        <i class="fa-solid fa-clock-rotate-left"></i> Historia
+    </button>
+
+    <button id="nav-btn-timer" onclick="switchMainTab('timer')" class="flex-1 py-2.5 px-2 sm:px-3 rounded-xl font-bold text-xs sm:text-sm text-slate-400 hover:text-white transition flex items-center justify-center gap-1.5">
+        <i class="fa-solid fa-stopwatch text-emerald-400"></i> Stoper
     </button>
 </div>
 
-<!-- WIDOK 1: STOPER INTERWAŁOWY (Chowa się domyślnie dzięki 'hidden') -->
-<div id="timer-view" class="hidden px-4">
-    <div class="bg-[#161f2e] border border-[#263347] rounded-2xl p-5 max-w-md mx-auto my-4 shadow-xl">
+<!-- WIDOK: STOPER INTERWAŁOWY (Chowa się domyślnie, pojawia po kliknięciu 'Stoper') -->
+<div id="view-timer" class="hidden px-4 max-w-md mx-auto my-6">
+    <div class="bg-[#161f2e] border border-[#263347] rounded-2xl p-5 shadow-xl">
         <h2 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
             <i class="fa-solid fa-stopwatch text-emerald-400"></i> Stoper Interwałowy
         </h2>
