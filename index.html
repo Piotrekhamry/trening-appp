@@ -5,10 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Góry & Siła</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -27,39 +23,9 @@
 </head>
 <body class="bg-appBg text-slate-100 min-h-screen font-sans antialiased pb-12">
 
-  <!-- EKRAN LOGOWANIA / REJESTRACJI -->
-  <div id="auth-screen" class="max-w-md mx-auto px-4 pt-20 hidden">
-    <div class="bg-cardBg p-8 rounded-2xl border border-cardBorder shadow-xl space-y-6">
-      <div class="text-center">
-        <h1 class="text-2xl font-bold text-white">Góry & Siła</h1>
-        <p class="text-xs text-slate-400 mt-1">Zaloguj się, aby zarządzać treningami</p>
-      </div>
-
-      <div class="space-y-4">
-        <div>
-          <label class="text-xs text-slate-400 font-semibold block mb-1">E-mail</label>
-          <input type="email" id="auth-email" class="w-full bg-appBg border border-cardBorder rounded-xl p-3 text-sm text-white focus:outline-none focus:border-accent">
-        </div>
-        <div>
-          <label class="text-xs text-slate-400 font-semibold block mb-1">Hasło</label>
-          <input type="password" id="auth-password" class="w-full bg-appBg border border-cardBorder rounded-xl p-3 text-sm text-white focus:outline-none focus:border-accent">
-        </div>
-      </div>
-
-      <div class="flex gap-3 pt-2">
-        <button onclick="handleLogin()" class="flex-1 py-3 bg-accent hover:bg-emerald-600 text-white font-bold text-xs rounded-xl transition">Zaloguj</button>
-        <button onclick="handleRegister()" class="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs rounded-xl border border-cardBorder transition">Zarejestruj</button>
-      </div>
-    </div>
-  </div>
-
   <!-- GŁÓWNA APLIKACJA -->
-  <div id="app-screen" class="max-w-4xl mx-auto px-4 py-6 hidden">
-    <div class="flex justify-between items-center mb-4 px-2">
-      <span id="user-email-display" class="text-xs text-slate-400"></span>
-      <button onclick="handleLogout()" class="text-xs text-red-400 hover:underline font-semibold">Wyloguj się</button>
-    </div>
-
+  <div id="app-screen" class="max-w-4xl mx-auto px-4 py-6">
+    
     <div class="relative overflow-hidden rounded-2xl border border-cardBorder bg-cardBg mb-6 shadow-xl">
       <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80" alt="Góry & Siła Banner" class="w-full h-40 object-cover object-center opacity-30">
       <div class="absolute inset-0 bg-gradient-to-t from-cardBg via-cardBg/60 to-transparent flex items-end p-6">
@@ -121,20 +87,6 @@
   </div>
 
   <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyBXlf-31p9tZcxPNI6ygIgEpVgAJbV32lE",
-      authDomain: "gory-sila.firebaseapp.com",
-      projectId: "gory-sila",
-      storageBucket: "gory-sila.firebasestorage.app",
-      messagingSenderId: "193068071570",
-      appId: "1:193068071570:web:6cce67aaaf25d3066b044b",
-      measurementId: "G-C0P43V04TE"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
     const DISCIPLINES = [
       { id: 'silownia', name: 'Siłownia' },
       { id: 'kettlebell', name: 'Kettlebell' },
@@ -173,7 +125,6 @@
       { month: 'luty', target: '15x4' }
     ];
 
-    let currentUser = null;
     let state = {
       activeTab: 'flow',
       selectedDiscipline: 'silownia',
@@ -183,56 +134,23 @@
       monthlyPlan: DEFAULT_MONTHLY_PLAN
     };
 
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        currentUser = user;
-        document.getElementById('auth-screen').classList.add('hidden');
-        document.getElementById('app-screen').classList.remove('hidden');
-        document.getElementById('user-email-display').textContent = `Zalogowany: ${user.email}`;
-        loadUserData();
-      } else {
-        currentUser = null;
-        document.getElementById('app-screen').classList.add('hidden');
-        document.getElementById('auth-screen').classList.remove('hidden');
-      }
-    });
-
-    function handleLogin() {
-      const email = document.getElementById('auth-email').value;
-      const pass = document.getElementById('auth-password').value;
-      auth.signInWithEmailAndPassword(email, pass).catch(err => alert(err.message));
-    }
-
-    function handleRegister() {
-      const email = document.getElementById('auth-email').value;
-      const pass = document.getElementById('auth-password').value;
-      auth.createUserWithEmailAndPassword(email, pass).catch(err => alert(err.message));
-    }
-
-    function handleLogout() {
-      auth.signOut();
-    }
-
-    async function loadUserData() {
-      const docRef = db.collection('users').doc(currentUser.uid);
-      const doc = await docRef.get();
-      if (doc.exists) {
-        const data = doc.data();
+    // Zamiast Firebase, używamy LocalStorage do zapisu danych przeglądarki
+    function loadUserData() {
+      const savedData = localStorage.getItem('gorySilaData');
+      if (savedData) {
+        const data = JSON.parse(savedData);
         state.templates = data.templates || DEFAULT_TEMPLATES;
         state.history = data.history || [];
-      } else {
-        await docRef.set({ templates: DEFAULT_TEMPLATES, history: [] });
       }
       selectDiscipline('silownia');
       renderMonthlyPlan();
     }
 
-    async function saveUserData() {
-      if (!currentUser) return;
-      await db.collection('users').doc(currentUser.uid).set({
+    function saveUserData() {
+      localStorage.setItem('gorySilaData', JSON.stringify({
         templates: state.templates,
         history: state.history
-      }, { merge: true });
+      }));
     }
 
     function switchTab(tabId) {
@@ -333,6 +251,9 @@
         </div>
       `).join('');
     }
+
+    // Inicjalizacja aplikacji przy starcie
+    loadUserData();
   </script>
 </body>
 </html>
