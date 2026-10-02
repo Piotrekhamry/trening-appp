@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Góry & Siła</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Firebase SDK -->
+  <!-- Firebase SDK (wersja zgodna ze skryptami) -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -27,7 +27,7 @@
 </head>
 <body class="bg-appBg text-slate-100 min-h-screen font-sans antialiased pb-12">
 
-  <!-- EKRAN LOGOWANIA / REJESTRACJI (Widoczny gdy brak sesji) -->
+  <!-- EKRAN LOGOWANIA / REJESTRACJI -->
   <div id="auth-screen" class="max-w-md mx-auto px-4 pt-20 hidden">
     <div class="bg-cardBg p-8 rounded-2xl border border-cardBorder shadow-xl space-y-6">
       <div class="text-center">
@@ -53,16 +53,13 @@
     </div>
   </div>
 
-  <!-- GŁÓWNA APLIKACIJA (Widoczna po zalogowaniu) -->
+  <!-- GŁÓWNA APLIKACJA -->
   <div id="app-screen" class="max-w-4xl mx-auto px-4 py-6 hidden">
-
-    <!-- NAGŁÓWEK Z WYLOGOWANIEM -->
     <div class="flex justify-between items-center mb-4 px-2">
       <span id="user-email-display" class="text-xs text-slate-400"></span>
       <button onclick="handleLogout()" class="text-xs text-red-400 hover:underline font-semibold">Wyloguj się</button>
     </div>
 
-    <!-- NAGŁÓWEK Z OBRAZEM Z TŁA -->
     <div class="relative overflow-hidden rounded-2xl border border-cardBorder bg-cardBg mb-6 shadow-xl">
       <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80" alt="Góry & Siła Banner" class="w-full h-40 object-cover object-center opacity-30">
       <div class="absolute inset-0 bg-gradient-to-t from-cardBg via-cardBg/60 to-transparent flex items-end p-6">
@@ -75,14 +72,12 @@
       </div>
     </div>
 
-    <!-- PASEK NAWIGACJI -->
     <nav class="flex flex-wrap bg-cardBg p-1.5 rounded-xl border border-cardBorder text-xs sm:text-sm font-semibold mb-6 gap-1">
       <button onclick="switchTab('flow')" id="tab-btn-flow" class="tab-btn flex-1 min-w-[110px] py-2.5 rounded-lg transition-all text-slate-400 hover:text-white">Trening</button>
       <button onclick="switchTab('plan')" id="tab-btn-plan" class="tab-btn flex-1 min-w-[110px] py-2.5 rounded-lg transition-all text-slate-400 hover:text-white">Grafik Miesięcy</button>
       <button onclick="switchTab('history')" id="tab-btn-history" class="tab-btn flex-1 min-w-[110px] py-2.5 rounded-lg transition-all text-slate-400 hover:text-white">Historia</button>
     </nav>
 
-    <!-- TAB 1: TRENING -->
     <main id="tab-flow" class="tab-content space-y-6">
       <section class="bg-cardBg p-5 rounded-2xl border border-cardBorder">
         <h2 id="current-discipline-title" class="text-xl font-bold text-white mb-4">Siłownia</h2>
@@ -91,7 +86,7 @@
 
       <div class="bg-cardBg p-4 rounded-2xl border border-cardBorder flex items-center justify-between">
         <div>
-          <span id="tonnage-label" class="text-xs text-slate-400 font-medium block uppercase tracking-wider">Tonaż / Objętość Sesji</span>
+          <span class="text-xs text-slate-400 font-medium block uppercase tracking-wider">Objętość Sesji</span>
           <span id="total-tonnage" class="text-2xl font-bold text-amber-400">0 kg</span>
         </div>
         <div class="text-right">
@@ -103,7 +98,6 @@
       <section class="space-y-4">
         <div class="flex items-center justify-between">
           <h3 class="text-base font-bold text-white">Ćwiczenia</h3>
-          <button onclick="addExercisePrompt()" class="px-3 py-1.5 bg-accent/20 hover:bg-accent/30 text-accentLight text-xs font-bold rounded-lg border border-accent/40 transition">+ Dodaj Ćwiczenie</button>
         </div>
         <div id="workout-exercise-list" class="space-y-4"></div>
       </section>
@@ -111,7 +105,6 @@
       <button onclick="finishWorkout()" class="w-full py-4 bg-accent hover:bg-emerald-600 text-white font-bold rounded-xl shadow-lg transition">Zakończ i Zapisz Trening</button>
     </main>
 
-    <!-- TAB 2: GRAFIK MIESIĘCY -->
     <main id="tab-plan" class="tab-content hidden space-y-6">
       <div class="bg-cardBg p-6 rounded-2xl border border-cardBorder space-y-4">
         <h2 class="text-lg font-bold text-white">Grafik Miesięcy</h2>
@@ -119,39 +112,25 @@
       </div>
     </main>
 
-    <!-- TAB 3: HISTORIA -->
     <main id="tab-history" class="tab-content hidden space-y-6">
       <div class="bg-cardBg p-6 rounded-2xl border border-cardBorder space-y-4">
         <h2 class="text-lg font-bold text-white">Historia i Statystyki</h2>
         <div id="history-list" class="space-y-3"></div>
       </div>
     </main>
-
   </div>
 
   <script>
-    // KONFIGURACJA FIREBASE (Wpisz tutaj dane z konsoli Firebase)
-  // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyBxLf-31p9tZcxPNI6ygIgEpVgAJbV32lE",
-  authDomain: "gory-sila.firebaseapp.com",
-  projectId: "gory-sila",
-  storageBucket: "gory-sila.firebasestorage.app",
-  messagingSenderId: "193068071570",
-  appId: "1:193068071570:web:6cce67aaaf25d3066b044b",
-  measurementId: "G-C0P43V04TE"
-};
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+    // Twoja poprawna konfiguracja Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyBXlf-31p9tZcxPNI6ygIgEpVgAJbV32lE",
+      authDomain: "gory-sila.firebaseapp.com",
+      projectId: "gory-sila",
+      storageBucket: "gory-sila.firebasestorage.app",
+      messagingSenderId: "193068071570",
+      appId: "1:193068071570:web:6cce67aaaf25d3066b044b",
+      measurementId: "G-C0P43V04TE"
+    };
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
@@ -205,7 +184,6 @@ const analytics = getAnalytics(app);
       monthlyPlan: DEFAULT_MONTHLY_PLAN
     };
 
-    // Nasłuchiwanie stanu logowania
     auth.onAuthStateChanged(user => {
       if (user) {
         currentUser = user;
