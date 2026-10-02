@@ -131,14 +131,27 @@
 
   <script>
     // KONFIGURACJA FIREBASE (Wpisz tutaj dane z konsoli Firebase)
-    const firebaseConfig = {
-      apiKey: "TOWOJ_API_KEY",
-      authDomain: "twoj-projekt.firebaseapp.com",
-      projectId: "twoj-projekt",
-      storageBucket: "twoj-projekt.appspot.com",
-      messagingSenderId: "ID",
-      appId: "APP_ID"
-    };
+  // Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+// TODO: Add SDKs for Firebase products that you want to use
+// https://firebase.google.com/docs/web/setup#available-libraries
+
+// Your web app's Firebase configuration
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyBxLf-31p9tZcxPNI6ygIgEpVgAJbV32lE",
+  authDomain: "gory-sila.firebaseapp.com",
+  projectId: "gory-sila",
+  storageBucket: "gory-sila.firebasestorage.app",
+  messagingSenderId: "193068071570",
+  appId: "1:193068071570:web:6cce67aaaf25d3066b044b",
+  measurementId: "G-C0P43V04TE"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
