@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Góry & Siła</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Firebase SDK (wersja zgodna ze skryptami) -->
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -73,7 +73,7 @@
     </div>
 
     <nav class="flex flex-wrap bg-cardBg p-1.5 rounded-xl border border-cardBorder text-xs sm:text-sm font-semibold mb-6 gap-1">
-      <button onclick="switchTab('flow')" id="tab-btn-flow" class="tab-btn flex-1 min-w-[110px] py-2.5 rounded-lg transition-all text-slate-400 hover:text-white">Trening</button>
+      <button onclick="switchTab('flow')" id="tab-btn-flow" class="tab-btn flex-1 min-w-[110px] py-2.5 rounded-lg transition-all bg-accent text-white shadow-md">Trening</button>
       <button onclick="switchTab('plan')" id="tab-btn-plan" class="tab-btn flex-1 min-w-[110px] py-2.5 rounded-lg transition-all text-slate-400 hover:text-white">Grafik Miesięcy</button>
       <button onclick="switchTab('history')" id="tab-btn-history" class="tab-btn flex-1 min-w-[110px] py-2.5 rounded-lg transition-all text-slate-400 hover:text-white">Historia</button>
     </nav>
@@ -81,7 +81,7 @@
     <main id="tab-flow" class="tab-content space-y-6">
       <section class="bg-cardBg p-5 rounded-2xl border border-cardBorder">
         <h2 id="current-discipline-title" class="text-xl font-bold text-white mb-4">Siłownia</h2>
-        <div class="grid grid-cols-2 sm:grid-cols-6 gap-2" id="discipline-selector"></div>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2" id="discipline-selector"></div>
       </section>
 
       <div class="bg-cardBg p-4 rounded-2xl border border-cardBorder flex items-center justify-between">
@@ -121,16 +121,15 @@
   </div>
 
   <script>
-   // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyBxLf-31p9tZcxPNI6ygIgEpVgAJbV32lE",
-  authDomain: "gory-sila.firebaseapp.com",
-  projectId: "gory-sila",
-  storageBucket: "gory-sila.firebasestorage.app",
-  messagingSenderId: "193068071570",
-  appId: "1:193068071570:web:6cce67aaaf25d3066b044b",
-  measurementId: "G-C0P43V04TE"
-};
+    const firebaseConfig = {
+      apiKey: "AIzaSyBXlf-31p9tZcxPNI6ygIgEpVgAJbV32lE",
+      authDomain: "gory-sila.firebaseapp.com",
+      projectId: "gory-sila",
+      storageBucket: "gory-sila.firebasestorage.app",
+      messagingSenderId: "193068071570",
+      appId: "1:193068071570:web:6cce67aaaf25d3066b044b",
+      measurementId: "G-C0P43V04TE"
+    };
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
@@ -255,13 +254,18 @@ const firebaseConfig = {
 
     function renderDisciplineSelector() {
       const container = document.getElementById('discipline-selector');
+      if (!container) return;
       container.innerHTML = DISCIPLINES.map(d => `
         <button onclick="selectDiscipline('${d.id}')" 
           class="p-2.5 rounded-xl border text-center transition font-semibold text-xs ${
             state.selectedDiscipline === d.id ? 'bg-accent/20 border-accent text-accentLight' : 'bg-appBg border-cardBorder text-slate-400'
           }">${d.name}</button>
       `).join('');
-      document.getElementById('current-discipline-title').textContent = DISCIPLINES.find(d => d.id === state.selectedDiscipline).name;
+      const titleEl = document.getElementById('current-discipline-title');
+      if (titleEl) {
+        const disc = DISCIPLINES.find(d => d.id === state.selectedDiscipline);
+        titleEl.textContent = disc ? disc.name : 'Trening';
+      }
     }
 
     function selectDiscipline(id) {
@@ -273,6 +277,7 @@ const firebaseConfig = {
 
     function renderWorkout() {
       const container = document.getElementById('workout-exercise-list');
+      if (!container) return;
       container.innerHTML = state.workout.map((ex, exIdx) => `
         <div class="bg-cardBg p-4 rounded-2xl border border-cardBorder space-y-3">
           <h4 class="font-bold text-slate-100 text-sm">${ex.name}</h4>
@@ -298,6 +303,7 @@ const firebaseConfig = {
 
     function renderMonthlyPlan() {
       const container = document.getElementById('monthly-plan-list');
+      if (!container) return;
       container.innerHTML = DEFAULT_MONTHLY_PLAN.map(item => `
         <div class="bg-appBg p-3 px-4 rounded-xl border border-cardBorder flex items-center justify-between">
           <span class="text-xs font-bold text-slate-200">${item.month}</span>
@@ -319,6 +325,7 @@ const firebaseConfig = {
 
     function renderHistory() {
       const container = document.getElementById('history-list');
+      if (!container) return;
       container.innerHTML = state.history.map(item => `
         <div class="bg-appBg p-4 rounded-xl border border-cardBorder flex justify-between items-center">
           <span class="font-bold text-white text-xs">${item.discipline}</span>
