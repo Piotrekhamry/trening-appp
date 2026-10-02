@@ -1382,6 +1382,30 @@
                 .replace(/>/g, "&gt;")
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#039;");
+            // ... Twoje dotychczasowe funkcje JS ...
+
+        // Generator dźwięków bez zewnętrznych plików
+        function playSound(type) {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'work') {
+                // Dźwięk START / PRACA: Wysoki pisk (880 Hz)
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.15);
+            } else if (type === 'rest') {
+                // Dźwięk PRZERWA: Niższy ton (440 Hz)
+                osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+            }
         }
     </script>
 </body>
