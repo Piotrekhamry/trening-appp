@@ -41,19 +41,22 @@
       </div>
     </div>
 
-    <!-- POJEDYNCZY PASEK NAWIGACJI (BEZ IKON) -->
-    <nav class="flex bg-cardBg p-1.5 rounded-xl border border-cardBorder text-xs sm:text-sm font-semibold mb-6">
-      <button onclick="switchTab('flow')" id="tab-btn-flow" class="tab-btn flex-1 py-2.5 rounded-lg transition-all text-slate-400 hover:text-white">
+    <!-- PASEK NAWIGACJI (BEZ IKON) -->
+    <nav class="flex flex-wrap bg-cardBg p-1.5 rounded-xl border border-cardBorder text-xs sm:text-sm font-semibold mb-6 gap-1">
+      <button onclick="switchTab('flow')" id="tab-btn-flow" class="tab-btn flex-1 min-w-[110px] py-2.5 rounded-lg transition-all text-slate-400 hover:text-white">
         Trening (Flow)
       </button>
-      <button onclick="switchTab('editor')" id="tab-btn-editor" class="tab-btn flex-1 py-2.5 rounded-lg transition-all text-slate-400 hover:text-white">
+      <button onclick="switchTab('plan')" id="tab-btn-plan" class="tab-btn flex-1 min-w-[110px] py-2.5 rounded-lg transition-all text-slate-400 hover:text-white">
+        Grafik Miesięcy
+      </button>
+      <button onclick="switchTab('editor')" id="tab-btn-editor" class="tab-btn flex-1 min-w-[110px] py-2.5 rounded-lg transition-all text-slate-400 hover:text-white">
         Edytor Szablonu
       </button>
-      <button onclick="switchTab('history')" id="tab-btn-history" class="tab-btn flex-1 py-2.5 rounded-lg transition-all text-slate-400 hover:text-white">
+      <button onclick="switchTab('history')" id="tab-btn-history" class="tab-btn flex-1 min-w-[110px] py-2.5 rounded-lg transition-all text-slate-400 hover:text-white">
         Historia & Staty
       </button>
-      <button onclick="switchTab('hiit')" id="tab-btn-hiit" class="tab-btn flex-1 py-2.5 rounded-lg transition-all text-slate-400 hover:text-white">
-        Stoper Interwałowy
+      <button onclick="switchTab('hiit')" id="tab-btn-hiit" class="tab-btn flex-1 min-w-[110px] py-2.5 rounded-lg transition-all text-slate-400 hover:text-white">
+        Stoper HIIT
       </button>
     </nav>
 
@@ -121,7 +124,26 @@
       </button>
     </main>
 
-    <!-- TAB 2: EDYTOR SZABLONU -->
+    <!-- TAB 2: GRAFIK MIESIĘCY (PLAN PROGRESU) -->
+    <main id="tab-plan" class="tab-content hidden space-y-6">
+      <div class="bg-cardBg p-6 rounded-2xl border border-cardBorder space-y-4">
+        <div class="flex justify-between items-center">
+          <div>
+            <h2 class="text-lg font-bold text-white">Grafik Miesięcy i Progresu</h2>
+            <p class="text-xs text-slate-400 mt-0.5">Zaplanowany rozwój i cele treningowe z miesiąca na miesiąc</p>
+          </div>
+          <button onclick="addMonthPrompt()" class="px-3 py-1.5 bg-accent/20 hover:bg-accent/30 text-accentLight text-xs font-bold rounded-lg border border-accent/40 transition">
+            + Dodaj Miesiąc
+          </button>
+        </div>
+
+        <div id="monthly-plan-list" class="space-y-4 pt-2">
+          <!-- Dynamicznie generowana lista miesięcy -->
+        </div>
+      </div>
+    </main>
+
+    <!-- TAB 3: EDYTOR SZABLONU -->
     <main id="tab-editor" class="tab-content hidden space-y-6">
       <div class="bg-cardBg p-6 rounded-2xl border border-cardBorder space-y-4">
         <h2 class="text-lg font-bold text-white">Edytor Szablonów Treningowych</h2>
@@ -141,7 +163,7 @@
       </div>
     </main>
 
-    <!-- TAB 3: HISTORIA -->
+    <!-- TAB 4: HISTORIA -->
     <main id="tab-history" class="tab-content hidden space-y-6">
       <div class="bg-cardBg p-6 rounded-2xl border border-cardBorder space-y-4">
         <div class="flex justify-between items-center">
@@ -154,7 +176,7 @@
       </div>
     </main>
 
-    <!-- TAB 4: STOPER HIIT -->
+    <!-- TAB 5: STOPER HIIT -->
     <main id="tab-hiit" class="tab-content hidden space-y-6">
       <div class="bg-cardBg p-6 rounded-2xl border border-cardBorder text-center space-y-6">
         <h2 class="text-lg font-bold text-white">Stoper Interwałowy</h2>
@@ -225,12 +247,48 @@
       ]
     };
 
+    const DEFAULT_MONTHLY_PLAN = [
+      {
+        month: 'Miesiąc 1',
+        title: 'Adaptacja i Baza Tlenowa',
+        focus: 'Ogólne wzmocnienie stawów, strefa 2 tętna',
+        targetTonnage: '+5% tonażu tygodniowo',
+        status: 'W trakcie',
+        notes: 'Treningi 3x w tygodniu: Siłownia / Kalistenika + 1x Bieg spokojny'
+      },
+      {
+        month: 'Miesiąc 2',
+        title: 'Budowanie Siły i Wytrzymałości',
+        focus: 'Przysiad, Ciągi, Marsz z obciążeniem',
+        targetTonnage: '+10% objętości',
+        status: 'Planowany',
+        notes: 'Wprowadzenie kettlebell i marszu z plecakiem 10 kg'
+      },
+      {
+        month: 'Miesiąc 3',
+        title: 'Szczyt Formy w Górach',
+        focus: 'Symulacja podejść, siła specyficzna legs & core',
+        targetTonnage: 'Utrzymanie siły + przewyższenia',
+        status: 'Planowany',
+        notes: 'Treningi obwodowe HIIT, marsze z obciążeniem 15 kg'
+      },
+      {
+        month: 'Miesiąc 4',
+        title: 'Regeneracja i Podtrzymanie',
+        focus: 'Kardiomobilność, lekka kalistenika',
+        targetTonnage: '-30% objętości',
+        status: 'Planowany',
+        notes: 'Regeneracja aktywna, rolowanie, rozciąganie'
+      }
+    ];
+
     let state = {
       activeTab: 'flow',
       selectedDiscipline: 'silownia',
-      templates: JSON.parse(localStorage.getItem('gs_templates_v2')) || DEFAULT_TEMPLATES,
+      templates: JSON.parse(localStorage.getItem('gs_templates_v3')) || DEFAULT_TEMPLATES,
       workout: [],
-      history: JSON.parse(localStorage.getItem('gs_history_v2')) || []
+      history: JSON.parse(localStorage.getItem('gs_history_v3')) || [],
+      monthlyPlan: JSON.parse(localStorage.getItem('gs_monthly_plan_v3')) || DEFAULT_MONTHLY_PLAN
     };
 
     state.workout = JSON.parse(JSON.stringify(state.templates[state.selectedDiscipline]));
@@ -246,9 +304,12 @@
 
       document.getElementById(`tab-${tabId}`).classList.remove('hidden');
       const activeBtn = document.getElementById(`tab-btn-${tabId}`);
-      activeBtn.classList.add('bg-accent', 'text-white', 'shadow-md');
-      activeBtn.classList.remove('text-slate-400');
+      if (activeBtn) {
+        activeBtn.classList.add('bg-accent', 'text-white', 'shadow-md');
+        activeBtn.classList.remove('text-slate-400');
+      }
 
+      if (tabId === 'plan') renderMonthlyPlan();
       if (tabId === 'history') renderHistory();
       if (tabId === 'editor') renderEditor();
     }
@@ -384,6 +445,87 @@
       document.getElementById('completed-sets-count').textContent = completedSets;
     }
 
+    // --- GRAFIK MIESIĘCY (PLAN PROGRESU) ---
+    function renderMonthlyPlan() {
+      const container = document.getElementById('monthly-plan-list');
+      if (!state.monthlyPlan || state.monthlyPlan.length === 0) {
+        container.innerHTML = `<div class="text-center py-8 text-slate-500 text-xs">Brak zaplanowanych miesięcy. Kliknij "+ Dodaj Miesiąc".</div>`;
+        return;
+      }
+
+      container.innerHTML = state.monthlyPlan.map((item, idx) => `
+        <div class="bg-appBg p-5 rounded-2xl border border-cardBorder space-y-3">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-cardBorder/60 pb-3">
+            <div>
+              <span class="text-[10px] font-bold text-accentLight uppercase tracking-wider block">${item.month}</span>
+              <h3 class="text-base font-bold text-white mt-0.5">${item.title}</h3>
+            </div>
+            <div class="flex items-center gap-2">
+              <select onchange="updateMonthStatus(${idx}, this.value)" class="bg-slate-900 border border-cardBorder text-xs text-slate-200 font-semibold rounded-lg px-2.5 py-1.5 focus:outline-none">
+                <option value="Planowany" ${item.status === 'Planowany' ? 'selected' : ''}>Planowany</option>
+                <option value="W trakcie" ${item.status === 'W trakcie' ? 'selected' : ''}>W trakcie</option>
+                <option value="Ukończony" ${item.status === 'Ukończony' ? 'selected' : ''}>Ukończony</option>
+              </select>
+              <button onclick="removeMonth(${idx})" class="text-xs text-red-400/70 hover:text-red-400 font-semibold px-2 py-1">Usuń</button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1">
+            <div>
+              <span class="text-slate-500 font-medium block">Główny Priorytet:</span>
+              <span class="text-slate-200 font-semibold">${item.focus}</span>
+            </div>
+            <div>
+              <span class="text-slate-500 font-medium block">Cel Progresu / Cel Objętościowy:</span>
+              <span class="text-amber-400 font-bold">${item.targetTonnage}</span>
+            </div>
+          </div>
+
+          <div class="text-xs text-slate-400 bg-cardBg/60 p-3 rounded-xl border border-cardBorder/40 mt-2">
+            <span class="font-bold text-slate-300 block mb-1">Wytyczne i uwagi:</span>
+            ${item.notes}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function updateMonthStatus(idx, newStatus) {
+      state.monthlyPlan[idx].status = newStatus;
+      localStorage.setItem('gs_monthly_plan_v3', JSON.stringify(state.monthlyPlan));
+      renderMonthlyPlan();
+    }
+
+    function removeMonth(idx) {
+      if (confirm("Czy na pewno usunąć ten miesiąc z grafiku?")) {
+        state.monthlyPlan.splice(idx, 1);
+        localStorage.setItem('gs_monthly_plan_v3', JSON.stringify(state.monthlyPlan));
+        renderMonthlyPlan();
+      }
+    }
+
+    function addMonthPrompt() {
+      const monthNumber = state.monthlyPlan.length + 1;
+      const monthLabel = `Miesiąc ${monthNumber}`;
+      const title = prompt(`Nazwa/Cel główny dla ${monthLabel}:`, `Budowanie Objętości ${monthNumber}`);
+      if (!title) return;
+
+      const focus = prompt("Główny priorytet (np. Przysiad / Baza tlenowa):", "Siła nóg i stabilizacja core");
+      const targetTonnage = prompt("Cel progresu (np. +5% siły / +2km tygodniowo):", "+5% tonażu");
+      const notes = prompt("Uwagi i planowane ćwiczenia:", "3x trening siłowy w tygodniu");
+
+      state.monthlyPlan.push({
+        month: monthLabel,
+        title: title,
+        focus: focus || 'Główny priorytet',
+        targetTonnage: targetTonnage || 'Progres liniowy',
+        status: 'Planowany',
+        notes: notes || 'Brak dodatkowych uwag.'
+      });
+
+      localStorage.setItem('gs_monthly_plan_v3', JSON.stringify(state.monthlyPlan));
+      renderMonthlyPlan();
+    }
+
     // --- STOPER PRZERWY ---
     let restInterval = null;
     let restTimeLeft = 0;
@@ -460,7 +602,7 @@
       };
 
       state.history.unshift(record);
-      localStorage.setItem('gs_history_v2', JSON.stringify(state.history));
+      localStorage.setItem('gs_history_v3', JSON.stringify(state.history));
       alert("Trening został zapisany w historii!");
       switchTab('history');
     }
@@ -491,7 +633,7 @@
     function clearHistory() {
       if (confirm("Czy usunąć całą historię?")) {
         state.history = [];
-        localStorage.removeItem('gs_history_v2');
+        localStorage.removeItem('gs_history_v3');
         renderHistory();
       }
     }
@@ -530,7 +672,7 @@
 
     function removeTemplateExercise(idx) {
       state.templates[editorDiscipline].splice(idx, 1);
-      localStorage.setItem('gs_templates_v2', JSON.stringify(state.templates));
+      localStorage.setItem('gs_templates_v3', JSON.stringify(state.templates));
       renderEditor();
     }
 
@@ -542,7 +684,7 @@
           name: name,
           sets: [{ reps: 8, weight: 0, done: false }, { reps: 8, weight: 0, done: false }]
         });
-        localStorage.setItem('gs_templates_v2', JSON.stringify(state.templates));
+        localStorage.setItem('gs_templates_v3', JSON.stringify(state.templates));
         renderEditor();
       }
     }
