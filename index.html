@@ -23,7 +23,6 @@
 </head>
 <body class="bg-appBg text-slate-100 min-h-screen font-sans antialiased pb-12">
 
-  <!-- GŁÓWNA APLIKACJA -->
   <div id="app-screen" class="max-w-4xl mx-auto px-4 py-6">
     <div class="relative overflow-hidden rounded-2xl border border-cardBorder bg-cardBg mb-6 shadow-xl">
       <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80" alt="Góry & Siła Banner" class="w-full h-40 object-cover object-center opacity-30">
@@ -67,4 +66,35 @@
         <div id="workout-exercise-list" class="space-y-4"></div>
       </section>
 
-      <button onclick="finishWorkout()" class="w-full py-4 bg-accent hover:bg-emerald-6
+      <button onclick="finishWorkout()" class="w-full py-4 bg-accent hover:bg-emerald-600 text-white font-bold rounded-xl shadow-lg transition">Zakończ i Zapisz Trening</button>
+    </main>
+
+    <main id="tab-plan" class="tab-content hidden space-y-6">
+      <div class="bg-cardBg p-6 rounded-2xl border border-cardBorder space-y-4">
+        <h2 class="text-lg font-bold text-white">Grafik Miesięcy</h2>
+        <div id="monthly-plan-list" class="space-y-2.5 pt-2"></div>
+      </div>
+    </main>
+
+    <main id="tab-history" class="tab-content hidden space-y-6">
+      <div class="bg-cardBg p-6 rounded-2xl border border-cardBorder space-y-4">
+        <h2 class="text-lg font-bold text-white">Historia i Statystyki</h2>
+        <div id="history-list" class="space-y-3"></div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const DISCIPLINES = [
+      { id: 'silownia', name: 'Siłownia' },
+      { id: 'kettlebell', name: 'Kettlebell' },
+      { id: 'kalistenika', name: 'Kalistenika' },
+      { id: 'bieganie', name: 'Bieganie' },
+      { id: 'gory', name: 'Góry (Wyjazd)' },
+      { id: 'wolne', name: 'Wolne / Regen' }
+    ];
+
+    const DEFAULT_TEMPLATES = {
+      silownia: [
+        { name: 'Martwy ciąg', sets: [{ reps: 5, weight: 100, done: false }, { reps: 5, weight: 100, done: false }] },
+        { name: 'Wyc
