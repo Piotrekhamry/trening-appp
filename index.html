@@ -711,6 +711,34 @@
       renderWorkout();
       switchTab('flow');
     });
+
+     // --- TOAST NOTIFICATION ---
+        function showToast(message) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = "bg-flowbg-900 border border-emerald-500/60 text-emerald-300 px-4 py-2.5 rounded-xl shadow-2xl text-xs font-bold pointer-events-auto transition-all duration-300 transform translate-y-2 opacity-0 flex items-center space-x-2";
+            toast.innerHTML = `<span>⚡</span><span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // --- INITIALIZATION ---
+        window.onload = function() {
+            // Set current day of the week
+            const days = ['Niedziela', 'Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota'];
+            document.getElementById('flow-day-display').textContent = days[new Date().getDay()];
+
+            selectFlowDiscipline('silownia');
+            updateRestTimerDisplay();
+            updateIntervalDisplayUI();
+            renderStats();
+            renderWorkoutHistory();
+        };
   </script>
 </body>
 </html>
