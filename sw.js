@@ -1,8 +1,8 @@
 /* Service worker: aplikacja działa bez internetu.
    Strona: najpierw sieć (żeby od razu widzieć nowe wersje), w razie braku – kopia.
    Pozostałe pliki: najpierw kopia, w tle odświeżanie. */
-const CACHE = 'gory-sila-v1';
-const PRECACHE = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-180.png', './image_3bed76.png'];
+const CACHE = 'gory-sila-v2';
+const PRECACHE = ['./', './index.html', './exercises.js', './manifest.json', './icon-192.png', './icon-512.png', './icon-180.png', './image_3bed76.png'];
 const TAILWIND = 'https://cdn.tailwindcss.com';
 
 self.addEventListener('install', (e) => {
