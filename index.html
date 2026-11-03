@@ -20,6 +20,9 @@
       }
     }
   </script>
+  <style>
+    summary::-webkit-details-marker { display: none; }
+  </style>
 </head>
 <body class="bg-appBg text-slate-100 min-h-screen font-sans antialiased pb-12">
 
@@ -65,6 +68,7 @@
           <div>
             <span class="text-xs font-bold text-accentLight uppercase tracking-wider block">Inteligentna Sugestia</span>
             <h2 id="current-discipline-title" class="text-xl font-bold text-white mt-1">Siłownia</h2>
+            <p id="suggestion-reason" class="text-xs text-slate-400 mt-1"></p>
           </div>
         </div>
 
@@ -151,6 +155,14 @@
           <h2 class="text-lg font-bold text-white">Historia i Statystyki</h2>
           <button onclick="clearHistory()" class="text-xs text-red-400 hover:underline">Wyczyść historię</button>
         </div>
+        <div id="history-stats" class="grid grid-cols-3 gap-2"></div>
+        <div class="flex gap-2">
+          <button onclick="exportBackup()" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-lg border border-cardBorder transition">Zapisz kopię (plik)</button>
+          <label class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-lg border border-cardBorder transition text-center cursor-pointer">
+            Wczytaj kopię
+            <input type="file" accept="application/json,.json" class="hidden" onchange="importBackup(this)">
+          </label>
+        </div>
         <div id="history-list" class="space-y-3">
           <!-- Zapisane treningi -->
         </div>
@@ -162,11 +174,21 @@
       <div class="bg-cardBg p-6 rounded-2xl border border-cardBorder text-center space-y-6">
         <h2 class="text-lg font-bold text-white">Stoper Interwałowy</h2>
 
-        <div class="py-8 bg-appBg rounded-2xl border border-cardBorder">
+        <div id="hiit-display" class="py-8 bg-appBg rounded-2xl border border-cardBorder transition-colors">
           <span id="hiit-phase" class="text-xs font-bold uppercase tracking-widest text-slate-400 block mb-2">Gotowy</span>
-          <span id="hiit-timer" class="text-5xl font-mono font-black text-white">00:20</span>
+          <span id="hiit-timer" class="text-6xl font-mono font-black text-white">00:20</span>
           <span id="hiit-round" class="text-xs text-slate-500 block mt-3">Runda 1 / 8</span>
         </div>
+
+        <div class="flex items-center justify-between text-xs text-slate-400">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="hiit-sound" checked class="accent-orange-500"> Dźwięk
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="checkbox" id="hiit-prep" checked class="accent-orange-500"> 5 s na przygotowanie
+          </label>
+        </div>
+        <p id="hiit-note" class="text-[11px] text-slate-500"></p>
 
         <div class="grid grid-cols-3 gap-3 text-left">
           <div>
@@ -191,6 +213,8 @@
     </main>
 
   </div>
+
+  <div id="toast" class="fixed left-1/2 -translate-x-1/2 bottom-6 z-50 max-w-sm w-[90%] bg-slate-800 border border-cardBorder text-slate-100 text-sm px-4 py-3 rounded-xl shadow-2xl hidden"></div>
 
   <script>
     const DISCIPLINES = [
@@ -278,6 +302,91 @@
 
     state.workout = JSON.parse(JSON.stringify(state.templates[state.selectedDiscipline]));
 
+    /* ---------- Inteligentna sugestia ---------- */
+    const STRENGTH = ['silownia', 'kettlebell', 'kalistenika'];
+    const ROTATION = ['silownia', 'bieganie', 'kettlebell', 'kalistenika'];
+    const NAME_TO_ID = Object.fromEntries(DISCIPLINES.map(d => [d.name, d.id]));
+    const discName = (id) => (DISCIPLINES.find(d => d.id === id) || {}).name || id;
+    const entryDisc = (h) => h.disciplineId || NAME_TO_ID[h.discipline] || null;
+    const entryTs = (h) => h.ts || h.id;
+
+    function daysAgo(ts) {
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      const d = new Date(ts); d.setHours(0, 0, 0, 0);
+      return Math.round((today - d) / 86400000);
+    }
+    const agoText = (n) => n === 0 ? 'dziś' : n === 1 ? 'wczoraj' : `${n} dni temu`;
+
+    function getSuggestion() {
+      const hist = state.history
+        .map(h => ({ id: entryDisc(h), ts: entryTs(h) }))
+        .filter(h => h.id)
+        .sort((a, b) => b.ts - a.ts);
+
+      if (hist.length === 0) {
+        return { id: 'silownia', reason: 'Zacznij od siłowni. Po pierwszym zapisanym treningu zacznę proponować kolejne.' };
+      }
+
+      const last = hist[0];
+      const lastAgo = daysAgo(last.ts);
+
+      // Dziś już był trening -> regeneracja
+      if (lastAgo === 0 && last.id !== 'wolne') {
+        return { id: 'wolne', reason: `Dziś już był trening (${discName(last.id)}). Teraz czas na regenerację.` };
+      }
+      // Dzień po górach -> regeneracja
+      if (last.id === 'gory' && lastAgo <= 1) {
+        return { id: 'wolne', reason: 'Po wyjściu w góry nogi potrzebują dnia odpoczynku.' };
+      }
+
+      // Ile dni z rzędu (do wczoraj) był trening bez dnia wolnego
+      const trainedOn = new Set(hist.filter(h => h.id !== 'wolne').map(h => daysAgo(h.ts)));
+      const restedOn = new Set(hist.filter(h => h.id === 'wolne').map(h => daysAgo(h.ts)));
+      let streak = 0;
+      for (let d = 1; d <= 7 && trainedOn.has(d) && !restedOn.has(d); d++) streak++;
+      if (streak >= 3) {
+        return { id: 'wolne', reason: `${streak} dni treningu z rzędu. Zrób dzień przerwy, żeby organizm nadrobił.` };
+      }
+
+      // Kiedy ostatnio była każda dyscyplina
+      const lastDone = {};
+      hist.forEach(h => { if (lastDone[h.id] === undefined) lastDone[h.id] = daysAgo(h.ts); });
+      const since = (id) => lastDone[id] === undefined ? Infinity : lastDone[id];
+
+      // Rotację liczymy od ostatniego prawdziwego treningu (nie od dnia wolnego)
+      const lastTraining = hist.find(h => h.id !== 'wolne');
+      const ltAgo = lastTraining ? daysAgo(lastTraining.ts) : Infinity;
+      let candidates = ROTATION.filter(id => !lastTraining || id !== lastTraining.id);
+      // Po sile wczoraj -> nie dokładaj kolejnej siły, jeśli bieganie jest możliwe
+      if (lastTraining && STRENGTH.includes(lastTraining.id) && ltAgo <= 1) {
+        const cardio = candidates.filter(id => !STRENGTH.includes(id));
+        if (cardio.length) candidates = cardio;
+      }
+      candidates.sort((a, b) => since(b) - since(a) || ROTATION.indexOf(a) - ROTATION.indexOf(b));
+      const pick = candidates[0];
+      const sinceText = since(pick) === Infinity ? 'jeszcze nie było jej w historii' : `ostatnio ${agoText(since(pick))}`;
+
+      if (last.id === 'wolne' && lastAgo === 0) {
+        return { id: pick, reason: `Dziś regeneracja zaliczona. Następny trening: ${discName(pick)} (${sinceText}).` };
+      }
+      const prev = lastTraining ? `Ostatni trening: ${discName(lastTraining.id)} (${agoText(ltAgo)}). ` : '';
+      return { id: pick, reason: `${prev}Teraz ${discName(pick)} – ${sinceText}.` };
+    }
+
+    function applySuggestion() {
+      const s = getSuggestion();
+      state.suggestion = s;
+      selectDiscipline(s.id);
+    }
+
+    function showToast(text) {
+      const t = document.getElementById('toast');
+      t.textContent = text;
+      t.classList.remove('hidden');
+      clearTimeout(showToast._t);
+      showToast._t = setTimeout(() => t.classList.add('hidden'), 4000);
+    }
+
     function isTimeBasedDiscipline(disciplineId) {
       return disciplineId === 'bieganie' || disciplineId === 'gory';
     }
@@ -318,6 +427,14 @@
       const activeDiscObj = DISCIPLINES.find(d => d.id === state.selectedDiscipline);
       if (activeDiscObj) {
         document.getElementById('current-discipline-title').textContent = activeDiscObj.name;
+      }
+
+      const reasonEl = document.getElementById('suggestion-reason');
+      const s = state.suggestion;
+      if (reasonEl && s) {
+        reasonEl.textContent = s.id === state.selectedDiscipline
+          ? '💡 ' + s.reason
+          : `💡 Sugestia: ${discName(s.id)}. Wybrałeś inaczej – też w porządku.`;
       }
     }
 
@@ -538,50 +655,153 @@
       }
 
       const discObj = DISCIPLINES.find(d => d.id === state.selectedDiscipline);
+      const exercises = state.workout
+        .map(ex => ({
+          name: ex.name,
+          sets: ex.sets.filter(s => s.done).map(s => isTimeBased
+            ? { time: parseFloat(s.time) || 0, calories: parseFloat(s.calories) || 0 }
+            : { reps: parseFloat(s.reps) || 0, weight: parseFloat(s.weight) || 0 })
+        }))
+        .filter(ex => ex.sets.length > 0);
+
+      const now = Date.now();
       const record = {
-        id: Date.now(),
-        date: new Date().toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
+        id: now,
+        ts: now,
+        date: new Date(now).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
+        disciplineId: state.selectedDiscipline,
         discipline: discObj ? discObj.name : 'Trening',
+        timeBased: isTimeBased,
         tonnage: isTimeBased ? `${totalTime} min | ${totalCalories} kcal` : `${tonnage} kg`,
+        tonnageKg: isTimeBased ? 0 : tonnage,
+        minutes: isTimeBased ? totalTime : 0,
         setsCount: setsDone,
-        exercisesCount: state.workout.length
+        exercisesCount: exercises.length,
+        exercises
       };
 
       state.history.unshift(record);
-      localStorage.setItem('gs_history_v3', JSON.stringify(state.history));
-      alert("Trening został zapisany w historii!");
+      saveHistory();
+      applySuggestion();
+      showToast(`Zapisano! Następnym razem: ${discName(state.suggestion.id)}.`);
       switchTab('history');
     }
 
+    function saveHistory() {
+      localStorage.setItem('gs_history_v3', JSON.stringify(state.history));
+    }
+
+    const escHtml = (t) => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+    function renderHistoryStats() {
+      const el = document.getElementById('history-stats');
+      const inDays = (n) => state.history.filter(h => entryDisc(h) !== 'wolne' && daysAgo(entryTs(h)) < n);
+      const week = inDays(7).length;
+      const month = inDays(30).length;
+      const kgOf = (h) => h.tonnageKg !== undefined ? h.tonnageKg
+        : (/kg\s*$/.test(String(h.tonnage)) ? parseFloat(h.tonnage) || 0 : 0);
+      const kg30 = inDays(30).reduce((sum, h) => sum + kgOf(h), 0);
+      const tile = (label, value) => `
+        <div class="bg-appBg p-3 rounded-xl border border-cardBorder text-center">
+          <span class="text-[10px] text-slate-500 uppercase tracking-wider block">${label}</span>
+          <span class="text-lg font-bold text-white">${value}</span>
+        </div>`;
+      el.innerHTML = tile('7 dni', `${week} tren.`) + tile('30 dni', `${month} tren.`) + tile('Tonaż 30 dni', `${Math.round(kg30).toLocaleString('pl-PL')} kg`);
+    }
+
     function renderHistory() {
+      renderHistoryStats();
       const container = document.getElementById('history-list');
       if (state.history.length === 0) {
         container.innerHTML = `<div class="text-center py-8 text-slate-500 text-xs">Brak zapisanych treningów.</div>`;
         return;
       }
 
-      container.innerHTML = state.history.map(item => `
-        <div class="bg-appBg p-4 rounded-xl border border-cardBorder flex justify-between items-center">
-          <div>
-            <div class="flex items-center gap-2">
-              <span class="font-bold text-white text-xs">${item.discipline}</span>
-              <span class="text-[10px] text-slate-500">${item.date}</span>
+      container.innerHTML = state.history.map((item, idx) => {
+        const details = (item.exercises || []).map(ex => `
+          <div class="py-1.5 border-t border-cardBorder/50">
+            <span class="text-xs font-semibold text-slate-200">${escHtml(ex.name)}</span>
+            <span class="text-[11px] text-slate-400 block">${ex.sets.map(s => item.timeBased
+              ? `${s.time} min / ${s.calories} kcal`
+              : `${s.reps}×${s.weight} kg`).join(' · ')}</span>
+          </div>`).join('');
+        return `
+        <details class="bg-appBg rounded-xl border border-cardBorder group">
+          <summary class="p-4 flex justify-between items-center cursor-pointer list-none">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="font-bold text-white text-xs">${escHtml(item.discipline)}</span>
+                <span class="text-[10px] text-slate-500">${escHtml(item.date)}</span>
+              </div>
+              <span class="text-xs text-slate-400 block mt-1">${item.exercisesCount} ćwiczeń | ${item.setsCount} serii</span>
             </div>
-            <span class="text-xs text-slate-400 block mt-1">${item.exercisesCount} ćwiczeń | ${item.setsCount} serii</span>
+            <div class="text-right">
+              <span class="text-sm font-bold text-amber-400">${escHtml(item.tonnage)}</span>
+              <span class="text-[10px] text-slate-500 block group-open:hidden">szczegóły ▾</span>
+            </div>
+          </summary>
+          <div class="px-4 pb-3">
+            ${details || '<p class="text-[11px] text-slate-500 py-1.5 border-t border-cardBorder/50">Starszy wpis – bez listy ćwiczeń.</p>'}
+            <button onclick="deleteHistoryEntry(${idx})" class="text-[11px] text-red-400/80 hover:text-red-400 mt-2">Usuń ten trening</button>
           </div>
-          <div class="text-right">
-            <span class="text-sm font-bold text-amber-400">${item.tonnage}</span>
-          </div>
-        </div>
-      `).join('');
+        </details>`;
+      }).join('');
+    }
+
+    function deleteHistoryEntry(idx) {
+      if (confirm("Usunąć ten trening z historii?")) {
+        state.history.splice(idx, 1);
+        saveHistory();
+        applySuggestion();
+        renderHistory();
+      }
     }
 
     function clearHistory() {
       if (confirm("Czy usunąć całą historię?")) {
         state.history = [];
         localStorage.removeItem('gs_history_v3');
+        applySuggestion();
         renderHistory();
       }
+    }
+
+    /* ---------- Kopia zapasowa ---------- */
+    function exportBackup() {
+      const data = {
+        app: 'gory-sila', version: 1, exportedAt: new Date().toISOString(),
+        history: state.history, templates: state.templates, monthlyPlan: state.monthlyPlan
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `gory-sila-kopia-${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    }
+
+    function importBackup(input) {
+      const file = input.files && input.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const data = JSON.parse(reader.result);
+          if (!Array.isArray(data.history)) throw new Error('brak historii');
+          if (!confirm(`Wczytać kopię z ${data.history.length} treningami? Obecna historia zostanie zastąpiona.`)) return;
+          state.history = data.history;
+          if (data.templates) { state.templates = data.templates; localStorage.setItem('gs_templates_v6', JSON.stringify(state.templates)); }
+          if (data.monthlyPlan) { state.monthlyPlan = data.monthlyPlan; localStorage.setItem('gs_monthly_plan_v3', JSON.stringify(state.monthlyPlan)); }
+          saveHistory();
+          applySuggestion();
+          renderHistory();
+          showToast('Kopia wczytana.');
+        } catch (e) {
+          alert('To nie wygląda na plik kopii z tej aplikacji.');
+        }
+        input.value = '';
+      };
+      reader.readAsText(file);
     }
 
     let editorDiscipline = 'silownia';
@@ -637,79 +857,187 @@
       }
     }
 
-    let hiitInterval = null;
+    /* ---------- Stoper HIIT ----------
+       Czas liczony od zegara (Date.now), a nie "co sekundę", więc stoper nie gubi czasu,
+       gdy telefon spowolni stronę. Dźwięk z Web Audio, wibracje i blokada wygaszania ekranu. */
+    let hiitTick = null;
     let hiitRunning = false;
-    let hiitPhase = 'work';
+    let hiitStarted = false;
+    let hiitPhase = 'ready';        // ready | prep | work | rest | done
     let hiitCurrentRound = 1;
-    let hiitTimeLeft = 20;
+    let hiitPhaseEnd = 0;           // znacznik czasu końca fazy
+    let hiitPausedLeftMs = 0;
+    let hiitLastShown = null;
+    let audioCtx = null;
+    let wakeLock = null;
+
+    const hiitCfg = () => ({
+      work: Math.max(1, parseInt(document.getElementById('hiit-work-input').value) || 20),
+      rest: Math.max(0, parseInt(document.getElementById('hiit-rest-input').value) || 0),
+      rounds: Math.max(1, parseInt(document.getElementById('hiit-rounds-input').value) || 8)
+    });
+
+    function unlockAudio() {
+      try {
+        audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        // krótki cichy dźwięk "odblokowuje" audio na iPhonie
+        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        g.gain.value = 0.0001; o.connect(g); g.connect(audioCtx.destination);
+        o.start(); o.stop(audioCtx.currentTime + 0.01);
+      } catch (e) { audioCtx = null; }
+    }
+
+    function beep(freq = 880, duration = 0.15, volume = 0.6) {
+      if (!document.getElementById('hiit-sound').checked || !audioCtx) return;
+      try {
+        const t = audioCtx.currentTime;
+        const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.type = 'square'; o.frequency.value = freq;
+        g.gain.setValueAtTime(volume, t);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+        o.connect(g); g.connect(audioCtx.destination);
+        o.start(t); o.stop(t + duration + 0.02);
+      } catch (e) {}
+    }
+    const vibrate = (p) => { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} };
+
+    async function requestWakeLock() {
+      try {
+        if ('wakeLock' in navigator && !wakeLock) {
+          wakeLock = await navigator.wakeLock.request('screen');
+          wakeLock.addEventListener('release', () => { wakeLock = null; });
+        }
+      } catch (e) { wakeLock = null; }
+    }
+    function releaseWakeLock() {
+      try { wakeLock && wakeLock.release(); } catch (e) {}
+      wakeLock = null;
+    }
+    // Po powrocie do karty blokadę trzeba założyć ponownie
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && hiitRunning) requestWakeLock();
+    });
+
+    function startPhase(phase, seconds, from) {
+      hiitPhase = phase;
+      hiitPhaseEnd = (from || Date.now()) + seconds * 1000;
+      hiitLastShown = null;
+      if (phase === 'work') { beep(1320, 0.45); vibrate(400); }
+      else if (phase === 'rest') { beep(660, 0.45); vibrate([150, 80, 150]); }
+    }
+
+    function nextPhase(at) {
+      const cfg = hiitCfg();
+      if (hiitPhase === 'prep') return startPhase('work', cfg.work, at);
+      if (hiitPhase === 'work') {
+        if (hiitCurrentRound >= cfg.rounds) return finishHIIT();
+        if (cfg.rest > 0) return startPhase('rest', cfg.rest, at);
+        hiitCurrentRound++;
+        return startPhase('work', cfg.work, at);
+      }
+      if (hiitPhase === 'rest') {
+        hiitCurrentRound++;
+        return startPhase('work', cfg.work, at);
+      }
+    }
+
+    function hiitLoop() {
+      if (!hiitRunning) return;
+      let guard = 0;
+      while (hiitRunning && Date.now() >= hiitPhaseEnd && guard++ < 500) nextPhase(hiitPhaseEnd);
+      if (!hiitRunning) return;
+      const left = Math.max(0, Math.ceil((hiitPhaseEnd - Date.now()) / 1000));
+      if (left !== hiitLastShown) {
+        if (left >= 1 && left <= 3) beep(880, 0.12, 0.5);   // odliczanie 3-2-1
+        hiitLastShown = left;
+        updateHIITDisplay(left);
+      }
+    }
 
     function toggleHIIT() {
+      unlockAudio();
       if (hiitRunning) {
-        clearInterval(hiitInterval);
         hiitRunning = false;
-        document.getElementById('hiit-start-btn').textContent = 'Wznowij';
-      } else {
-        hiitRunning = true;
-        document.getElementById('hiit-start-btn').textContent = 'Pauza';
-        
-        hiitInterval = setInterval(() => {
-          hiitTimeLeft--;
-          if (hiitTimeLeft < 0) {
-            const workSec = parseInt(document.getElementById('hiit-work-input').value) || 20;
-            const restSec = parseInt(document.getElementById('hiit-rest-input').value) || 10;
-            const totalRounds = parseInt(document.getElementById('hiit-rounds-input').value) || 8;
-
-            if (hiitPhase === 'work') {
-              hiitPhase = 'rest';
-              hiitTimeLeft = restSec;
-            } else {
-              hiitPhase = 'work';
-              hiitCurrentRound++;
-              if (hiitCurrentRound > totalRounds) {
-                resetHIIT();
-                alert("Trening HIIT ukończony!");
-                return;
-              }
-              hiitTimeLeft = workSec;
-            }
-          }
-          updateHIITDisplay();
-        }, 1000);
+        clearInterval(hiitTick);
+        hiitPausedLeftMs = Math.max(0, hiitPhaseEnd - Date.now());
+        releaseWakeLock();
+        document.getElementById('hiit-start-btn').textContent = 'Wznów';
+        updateHIITDisplay(Math.ceil(hiitPausedLeftMs / 1000));
+        return;
       }
+      hiitRunning = true;
+      requestWakeLock();
+      document.getElementById('hiit-start-btn').textContent = 'Pauza';
+      if (!hiitStarted) {
+        hiitStarted = true;
+        hiitCurrentRound = 1;
+        if (document.getElementById('hiit-prep').checked) startPhase('prep', 5);
+        else startPhase('work', hiitCfg().work);
+      } else {
+        hiitPhaseEnd = Date.now() + hiitPausedLeftMs;
+        hiitLastShown = null;
+      }
+      clearInterval(hiitTick);
+      hiitTick = setInterval(hiitLoop, 200);
+      hiitLoop();
+    }
+
+    function finishHIIT() {
+      hiitRunning = false;
+      hiitStarted = false;
+      clearInterval(hiitTick);
+      releaseWakeLock();
+      hiitPhase = 'done';
+      beep(1320, 0.2); setTimeout(() => beep(1320, 0.2), 280); setTimeout(() => beep(1760, 0.6), 560);
+      vibrate([300, 100, 300, 100, 600]);
+      document.getElementById('hiit-start-btn').textContent = 'Start';
+      updateHIITDisplay(0);
     }
 
     function resetHIIT() {
-      clearInterval(hiitInterval);
       hiitRunning = false;
-      hiitPhase = 'work';
+      hiitStarted = false;
+      clearInterval(hiitTick);
+      releaseWakeLock();
+      hiitPhase = 'ready';
       hiitCurrentRound = 1;
-      hiitTimeLeft = parseInt(document.getElementById('hiit-work-input').value) || 20;
       document.getElementById('hiit-start-btn').textContent = 'Start';
-      updateHIITDisplay();
+      updateHIITDisplay(hiitCfg().work);
     }
 
-    function updateHIITDisplay() {
-      const m = String(Math.floor(hiitTimeLeft / 60)).padStart(2, '0');
-      const s = String(hiitTimeLeft % 60).padStart(2, '0');
+    function updateHIITDisplay(secondsLeft) {
+      const m = String(Math.floor(secondsLeft / 60)).padStart(2, '0');
+      const s = String(secondsLeft % 60).padStart(2, '0');
       document.getElementById('hiit-timer').textContent = `${m}:${s}`;
-      
-      const phaseEl = document.getElementById('hiit-phase');
-      if (hiitPhase === 'work') {
-        phaseEl.textContent = 'PRACA';
-        phaseEl.className = 'text-xs font-bold uppercase tracking-widest text-accentLight block mb-2';
-      } else {
-        phaseEl.textContent = 'ODPOCZYNEK';
-        phaseEl.className = 'text-xs font-bold uppercase tracking-widest text-amber-400 block mb-2';
-      }
 
-      const totalRounds = document.getElementById('hiit-rounds-input').value || 8;
-      document.getElementById('hiit-round').textContent = `Runda ${hiitCurrentRound} / ${totalRounds}`;
+      const phaseEl = document.getElementById('hiit-phase');
+      const box = document.getElementById('hiit-display');
+      const looks = {
+        ready: ['Gotowy', 'text-slate-400', 'bg-appBg'],
+        prep: ['Przygotuj się', 'text-sky-400', 'bg-sky-950/40'],
+        work: ['Praca', 'text-accentLight', 'bg-red-950/40'],
+        rest: ['Odpoczynek', 'text-amber-400', 'bg-amber-950/30'],
+        done: ['Koniec – dobra robota!', 'text-emerald-400', 'bg-emerald-950/40']
+      }[hiitPhase];
+      phaseEl.textContent = looks[0];
+      phaseEl.className = `text-xs font-bold uppercase tracking-widest ${looks[1]} block mb-2`;
+      box.className = `py-8 rounded-2xl border border-cardBorder transition-colors ${looks[2]}`;
+
+      document.getElementById('hiit-round').textContent = `Runda ${hiitCurrentRound} / ${hiitCfg().rounds}`;
     }
+
+    // Zmiana ustawień przed startem od razu odświeża licznik
+    ['hiit-work-input', 'hiit-rest-input', 'hiit-rounds-input'].forEach(id =>
+      document.getElementById(id).addEventListener('input', () => { if (!hiitStarted) resetHIIT(); }));
 
     window.addEventListener('DOMContentLoaded', () => {
-      renderDisciplineSelector();
-      renderWorkout();
+      applySuggestion();
       switchTab('flow');
+      resetHIIT();
+      if (!('wakeLock' in navigator)) {
+        document.getElementById('hiit-note').textContent = 'Ta przeglądarka nie pozwala zablokować wygaszania ekranu – ustaw dłuższy czas blokady w telefonie.';
+      }
     });
   </script>
 </body>
