@@ -4,8 +4,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Góry & Siła</title>
+  <meta name="theme-color" content="#0b1120">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Góry & Siła">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
+    window.tailwind = window.tailwind || {};
     tailwind.config = {
       theme: {
         extend: {
@@ -22,6 +31,8 @@
   </script>
   <style>
     summary::-webkit-details-marker { display: none; }
+    body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+    .chart-tip { position: absolute; pointer-events: none; transform: translate(-50%, -110%); white-space: nowrap; }
   </style>
 </head>
 <body class="bg-appBg text-slate-100 min-h-screen font-sans antialiased pb-12">
@@ -62,6 +73,9 @@
 
     <!-- TAB 1: TRENING (FLOW) -->
     <main id="tab-flow" class="tab-content space-y-6">
+      <!-- Cel górski -->
+      <div id="goal-banner" class="hidden bg-cardBg p-4 rounded-2xl border border-accent/40 flex items-center justify-between gap-3"></div>
+
       <!-- Wybór Dyscypliny -->
       <section class="bg-cardBg p-5 rounded-2xl border border-cardBorder">
         <div class="flex items-center justify-between mb-4">
@@ -111,6 +125,33 @@
 
     <!-- TAB 2: GRAFIK MIESIĘCY -->
     <main id="tab-plan" class="tab-content hidden space-y-6">
+      <!-- Cel górski -->
+      <div class="bg-cardBg p-6 rounded-2xl border border-cardBorder space-y-3">
+        <div>
+          <h2 class="text-lg font-bold text-white">Cel w górach</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Na ostatnie 8 tygodni przed celem sugestie stawiają na bieganie i wyjścia w góry.</p>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <input id="goal-name" type="text" placeholder="np. Rysy" class="sm:col-span-2 bg-slate-900 border border-cardBorder rounded-lg p-2 text-sm text-white">
+          <input id="goal-date" type="date" class="bg-slate-900 border border-cardBorder rounded-lg p-2 text-sm text-white">
+        </div>
+        <div class="flex gap-2">
+          <button onclick="saveGoal()" class="flex-1 py-2 bg-accent/20 hover:bg-accent/30 text-accentLight text-xs font-bold rounded-lg border border-accent/40 transition">Zapisz cel</button>
+          <button onclick="clearGoal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold rounded-lg border border-cardBorder transition">Usuń cel</button>
+        </div>
+      </div>
+
+      <!-- Ustawienia grafiku -->
+      <div class="bg-cardBg p-6 rounded-2xl border border-cardBorder space-y-3">
+        <h2 class="text-lg font-bold text-white">Jak działa grafik</h2>
+        <p class="text-xs text-slate-400">Pozycja „9x3” oznacza 9 powtórzeń × 3 serie. W zaznaczonych dyscyplinach trening sam ustawia serie i powtórzenia według bieżącego miesiąca planu.</p>
+        <div class="flex items-center gap-3">
+          <label for="plan-start" class="text-xs text-slate-400 font-semibold">Pierwszy miesiąc planu</label>
+          <input id="plan-start" type="month" onchange="setPlanStart(this.value)" class="bg-slate-900 border border-cardBorder rounded-lg p-2 text-sm text-white">
+        </div>
+        <div id="plan-disciplines" class="flex flex-wrap gap-2"></div>
+      </div>
+
       <div class="bg-cardBg p-6 rounded-2xl border border-cardBorder space-y-4">
         <div class="flex justify-between items-center">
           <div>
@@ -156,6 +197,23 @@
           <button onclick="clearHistory()" class="text-xs text-red-400 hover:underline">Wyczyść historię</button>
         </div>
         <div id="history-stats" class="grid grid-cols-3 gap-2"></div>
+
+        <div class="bg-appBg p-4 rounded-xl border border-cardBorder">
+          <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Treningi w tygodniu</h3>
+          <p class="text-[11px] text-slate-500 mb-2">Ostatnie 8 tygodni, bez dni wolnych</p>
+          <div id="chart-weekly" class="relative"></div>
+        </div>
+
+        <div class="bg-appBg p-4 rounded-xl border border-cardBorder">
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <div>
+              <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider">Postęp w ćwiczeniu</h3>
+              <p class="text-[11px] text-slate-500">Największy ciężar w sesji (kg)</p>
+            </div>
+            <select id="chart-exercise-select" onchange="renderExerciseChart()" class="max-w-[55%] bg-slate-900 border border-cardBorder rounded-lg p-1.5 text-xs text-white"></select>
+          </div>
+          <div id="chart-exercise" class="relative"></div>
+        </div>
         <div class="flex gap-2">
           <button onclick="exportBackup()" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-lg border border-cardBorder transition">Zapisz kopię (plik)</button>
           <label class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-bold rounded-lg border border-cardBorder transition text-center cursor-pointer">
@@ -297,10 +355,131 @@
       templates: JSON.parse(localStorage.getItem('gs_templates_v6')) || DEFAULT_TEMPLATES,
       workout: [],
       history: JSON.parse(localStorage.getItem('gs_history_v3')) || [],
-      monthlyPlan: JSON.parse(localStorage.getItem('gs_monthly_plan_v3')) || DEFAULT_MONTHLY_PLAN
+      monthlyPlan: JSON.parse(localStorage.getItem('gs_monthly_plan_v3')) || DEFAULT_MONTHLY_PLAN,
+      planStart: localStorage.getItem('gs_plan_start') || '2026-10',
+      planDisciplines: JSON.parse(localStorage.getItem('gs_plan_disciplines') || 'null') || ['kalistenika'],
+      goal: JSON.parse(localStorage.getItem('gs_goal') || 'null')
     };
 
     state.workout = JSON.parse(JSON.stringify(state.templates[state.selectedDiscipline]));
+
+    /* ---------- Grafik miesięcy ---------- */
+    function currentPlan() {
+      const [y, m] = (state.planStart || '').split('-').map(Number);
+      if (!y || !m) return null;
+      const now = new Date();
+      const idx = (now.getFullYear() - y) * 12 + (now.getMonth() + 1 - m);
+      const item = state.monthlyPlan[idx];
+      if (idx < 0 || !item) return null;
+      const match = String(item.target).match(/(\d+)\s*[x×]\s*(\d+)/i);
+      if (!match) return null;
+      return { idx, item, reps: parseInt(match[1]), sets: parseInt(match[2]) };
+    }
+
+    function setPlanStart(v) {
+      state.planStart = v;
+      localStorage.setItem('gs_plan_start', v);
+      renderMonthlyPlan();
+      selectDiscipline(state.selectedDiscipline);
+    }
+
+    function togglePlanDiscipline(id) {
+      const list = state.planDisciplines;
+      state.planDisciplines = list.includes(id) ? list.filter(x => x !== id) : [...list, id];
+      localStorage.setItem('gs_plan_disciplines', JSON.stringify(state.planDisciplines));
+      renderMonthlyPlan();
+      selectDiscipline(state.selectedDiscipline);
+    }
+
+    /* ---------- Trening budowany z szablonu + historii ---------- */
+    function lastExercise(name) {
+      for (const h of state.history) {               // historia: najnowsze na początku
+        const e = (h.exercises || []).find(x => x.name === name);
+        if (e && e.sets.length) return { e, h };
+      }
+      return null;
+    }
+
+    function buildWorkout(discId) {
+      const tpl = JSON.parse(JSON.stringify(state.templates[discId] || []));
+      if (isTimeBasedDiscipline(discId) || discId === 'wolne') return tpl;
+      const plan = state.planDisciplines.includes(discId) ? currentPlan() : null;
+
+      return tpl.map(ex => {
+        const prev = lastExercise(ex.name);
+        let sets = ex.sets.map(s => ({ reps: s.reps, weight: s.weight, done: false }));
+        let hint = '';
+
+        if (prev) {
+          sets = prev.e.sets.map(s => ({ reps: s.reps, weight: s.weight, done: false }));
+          // Jeśli ostatnio zrobiłeś mniej serii niż w szablonie, uzupełnij do pełnej liczby
+          while (sets.length < ex.sets.length) sets.push({ ...sets[sets.length - 1] });
+          hint = `Jak ostatnio (${prev.h.date})`;
+        }
+
+        if (plan) {
+          const base = sets.length ? sets : [{ reps: plan.reps, weight: 0 }];
+          sets = Array.from({ length: plan.sets }, (_, i) => ({
+            reps: plan.reps, weight: (base[i] || base[base.length - 1]).weight || 0, done: false
+          }));
+          hint = `Plan – ${plan.item.month}: ${plan.reps} powt. × ${plan.sets} serie`;
+        } else if (prev && prev.e.allDone) {
+          const heavy = discId === 'silownia' && sets.some(s => s.weight > 0);
+          sets = sets.map(s => heavy ? { ...s, weight: Math.round((s.weight + 2.5) * 10) / 10 } : { ...s, reps: s.reps + 1 });
+          hint = heavy ? '↑ +2,5 kg – ostatnio wszystkie serie zaliczone' : '↑ +1 powtórzenie – ostatnio wszystkie serie zaliczone';
+        }
+
+        return { ...ex, sets, hint };
+      });
+    }
+
+    /* ---------- Cel w górach ---------- */
+    function goalInfo() {
+      const g = state.goal;
+      if (!g || !g.date) return null;
+      const days = -daysAgo(new Date(g.date + 'T12:00:00').getTime());
+      return { ...g, days, weeks: Math.ceil(days / 7) };
+    }
+
+    function saveGoal() {
+      const name = document.getElementById('goal-name').value.trim();
+      const date = document.getElementById('goal-date').value;
+      if (!date) { alert('Wybierz datę celu.'); return; }
+      state.goal = { name: name || 'Cel w górach', date };
+      localStorage.setItem('gs_goal', JSON.stringify(state.goal));
+      renderGoal();
+      applySuggestion();
+      showToast('Cel zapisany.');
+    }
+
+    function clearGoal() {
+      state.goal = null;
+      localStorage.removeItem('gs_goal');
+      document.getElementById('goal-name').value = '';
+      document.getElementById('goal-date').value = '';
+      renderGoal();
+      applySuggestion();
+    }
+
+    function renderGoal() {
+      const el = document.getElementById('goal-banner');
+      const g = goalInfo();
+      if (g) {
+        document.getElementById('goal-name').value = g.name;
+        document.getElementById('goal-date').value = g.date;
+      }
+      if (!g || g.days < -1) { el.classList.add('hidden'); return; }
+      const when = g.days > 13 ? `za ${g.weeks} tyg.` : g.days > 1 ? `za ${g.days} dni` : g.days === 1 ? 'jutro!' : g.days === 0 ? 'dziś! Powodzenia!' : 'wczoraj – jak poszło?';
+      const dateTxt = new Date(g.date + 'T12:00:00').toLocaleDateString('pl-PL', { day: 'numeric', month: 'long' });
+      el.innerHTML = `
+        <div>
+          <span class="text-[10px] font-bold text-accentLight uppercase tracking-wider block">Cel</span>
+          <span class="text-base font-bold text-white">🏔️ ${escHtml(g.name)}</span>
+          <span class="text-xs text-slate-400 block">${dateTxt}</span>
+        </div>
+        <span class="text-lg font-bold text-amber-400 text-right">${when}</span>`;
+      el.classList.remove('hidden');
+    }
 
     /* ---------- Inteligentna sugestia ---------- */
     const STRENGTH = ['silownia', 'kettlebell', 'kalistenika'];
@@ -356,6 +535,16 @@
       // Rotację liczymy od ostatniego prawdziwego treningu (nie od dnia wolnego)
       const lastTraining = hist.find(h => h.id !== 'wolne');
       const ltAgo = lastTraining ? daysAgo(lastTraining.ts) : Infinity;
+      // Cel w górach blisko -> weekend w górach, w tygodniu więcej biegania
+      const goal = goalInfo();
+      const goalNear = goal && goal.days > 1 && goal.weeks <= 8;
+      if (goalNear) {
+        const dow = new Date().getDay();
+        if ((dow === 0 || dow === 6) && since('gory') > 6) {
+          return { id: 'gory', reason: `Do celu (${goal.name}) zostało ${goal.weeks} tyg. Weekend to dobry moment na wyjście z plecakiem.` };
+        }
+      }
+
       let candidates = ROTATION.filter(id => !lastTraining || id !== lastTraining.id);
       // Po sile wczoraj -> nie dokładaj kolejnej siły, jeśli bieganie jest możliwe
       if (lastTraining && STRENGTH.includes(lastTraining.id) && ltAgo <= 1) {
@@ -363,14 +552,19 @@
         if (cardio.length) candidates = cardio;
       }
       candidates.sort((a, b) => since(b) - since(a) || ROTATION.indexOf(a) - ROTATION.indexOf(b));
+      if (goalNear && candidates.includes('bieganie') && since('bieganie') >= 2) {
+        candidates = ['bieganie', ...candidates.filter(id => id !== 'bieganie')];
+      }
       const pick = candidates[0];
+      const goalTxt = !goalNear ? ''
+        : ['bieganie', 'gory'].includes(pick) ? ` Do celu ${goal.weeks} tyg. – stawiamy na kondycję.` : ` Do celu ${goal.weeks} tyg.`;
       const sinceText = since(pick) === Infinity ? 'jeszcze nie było jej w historii' : `ostatnio ${agoText(since(pick))}`;
 
       if (last.id === 'wolne' && lastAgo === 0) {
-        return { id: pick, reason: `Dziś regeneracja zaliczona. Następny trening: ${discName(pick)} (${sinceText}).` };
+        return { id: pick, reason: `Dziś regeneracja zaliczona. Następny trening: ${discName(pick)} (${sinceText}).${goalTxt}` };
       }
       const prev = lastTraining ? `Ostatni trening: ${discName(lastTraining.id)} (${agoText(ltAgo)}). ` : '';
-      return { id: pick, reason: `${prev}Teraz ${discName(pick)} – ${sinceText}.` };
+      return { id: pick, reason: `${prev}Teraz ${discName(pick)} – ${sinceText}.${goalTxt}` };
     }
 
     function applySuggestion() {
@@ -440,7 +634,7 @@
 
     function selectDiscipline(id) {
       state.selectedDiscipline = id;
-      state.workout = JSON.parse(JSON.stringify(state.templates[id] || []));
+      state.workout = buildWorkout(id);
       renderDisciplineSelector();
       renderWorkout();
     }
@@ -457,8 +651,11 @@
 
       container.innerHTML = state.workout.map((ex, exIdx) => `
         <div class="bg-cardBg p-4 rounded-2xl border border-cardBorder space-y-3">
-          <div class="flex justify-between items-center border-b border-cardBorder/60 pb-2">
-            <h4 class="font-bold text-slate-100 text-sm">${ex.name}</h4>
+          <div class="flex justify-between items-start border-b border-cardBorder/60 pb-2 gap-2">
+            <div>
+              <h4 class="font-bold text-slate-100 text-sm">${ex.name}</h4>
+              ${ex.hint ? `<span class="text-[11px] ${ex.hint.startsWith('↑') ? 'text-emerald-400' : 'text-slate-400'} block mt-0.5">${ex.hint}</span>` : ''}
+            </div>
             <button onclick="removeExercise(${exIdx})" class="text-xs text-red-400/70 hover:text-red-400 font-semibold">Usuń</button>
           </div>
 
@@ -596,9 +793,20 @@
         return;
       }
 
+      document.getElementById('plan-start').value = state.planStart || '';
+      document.getElementById('plan-disciplines').innerHTML = DISCIPLINES
+        .filter(d => !isTimeBasedDiscipline(d.id) && d.id !== 'wolne')
+        .map(d => `
+          <button onclick="togglePlanDiscipline('${d.id}')" class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
+            state.planDisciplines.includes(d.id) ? 'bg-accent/20 text-accentLight border-accent' : 'bg-appBg border-cardBorder text-slate-400'
+          }">${state.planDisciplines.includes(d.id) ? '✓ ' : ''}${d.name}</button>`).join('');
+
+      const cur = currentPlan();
       container.innerHTML = state.monthlyPlan.map((item, idx) => `
-        <div class="bg-appBg p-3 px-4 rounded-xl border border-cardBorder flex items-center justify-between">
-          <span class="text-xs font-bold text-slate-200">${item.month}</span>
+        <div class="p-3 px-4 rounded-xl border flex items-center justify-between ${
+          cur && cur.idx === idx ? 'bg-accent/10 border-accent' : 'bg-appBg border-cardBorder'
+        }">
+          <span class="text-xs font-bold text-slate-200">${item.month}${cur && cur.idx === idx ? ' <span class="text-accentLight">• teraz</span>' : ''}</span>
           <div class="flex items-center gap-4">
             <span class="text-xs font-mono font-bold text-accentLight bg-accent/10 px-2.5 py-1 rounded-lg border border-accent/30">${item.target}</span>
             <button onclick="removeMonth(${idx})" class="text-xs text-red-400/70 hover:text-red-400 font-semibold">Usuń</button>
@@ -658,6 +866,7 @@
       const exercises = state.workout
         .map(ex => ({
           name: ex.name,
+          allDone: ex.sets.length > 0 && ex.sets.every(s => s.done),
           sets: ex.sets.filter(s => s.done).map(s => isTimeBased
             ? { time: parseFloat(s.time) || 0, calories: parseFloat(s.calories) || 0 }
             : { reps: parseFloat(s.reps) || 0, weight: parseFloat(s.weight) || 0 })
@@ -709,8 +918,112 @@
       el.innerHTML = tile('7 dni', `${week} tren.`) + tile('30 dni', `${month} tren.`) + tile('Tonaż 30 dni', `${Math.round(kg30).toLocaleString('pl-PL')} kg`);
     }
 
+    /* ---------- Wykresy (czyste SVG, działają offline) ---------- */
+    const CH = { w: 320, h: 150, l: 30, r: 10, t: 14, b: 26, mark: '#f97316', grid: '#1c2b44', axis: '#64748b' };
+
+    function attachTips(container) {
+      const tip = container.querySelector('.chart-tip');
+      container.querySelectorAll('[data-tip]').forEach(el => {
+        const show = () => {
+          const box = container.getBoundingClientRect(), r = el.getBoundingClientRect();
+          tip.textContent = el.dataset.tip;
+          tip.style.left = (r.left + r.width / 2 - box.left) + 'px';
+          tip.style.top = (r.top - box.top) + 'px';
+          tip.classList.remove('hidden');
+        };
+        el.addEventListener('mouseenter', show);
+        el.addEventListener('click', show);
+        el.addEventListener('mouseleave', () => tip.classList.add('hidden'));
+      });
+    }
+    const tipEl = '<div class="chart-tip hidden bg-slate-800 border border-cardBorder text-slate-100 text-[11px] px-2 py-1 rounded-md shadow-lg"></div>';
+
+    function niceMax(v) {
+      if (v <= 4) return 4;
+      const p = Math.pow(10, Math.floor(Math.log10(v))), n = v / p;
+      return (n <= 2 ? 2 : n <= 5 ? 5 : 10) * p;
+    }
+
+    function renderWeeklyChart() {
+      const el = document.getElementById('chart-weekly');
+      const monday = new Date(); monday.setHours(0, 0, 0, 0);
+      monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+      const weeks = Array.from({ length: 8 }, (_, i) => {
+        const start = new Date(monday); start.setDate(start.getDate() - (7 - i - 1) * 7);
+        const end = new Date(start); end.setDate(end.getDate() + 7);
+        const count = state.history.filter(h => entryDisc(h) !== 'wolne' && entryTs(h) >= start && entryTs(h) < end).length;
+        return { start, count };
+      });
+      const max = niceMax(Math.max(...weeks.map(w => w.count), 1));
+      const pw = CH.w - CH.l - CH.r, ph = CH.h - CH.t - CH.b, slot = pw / weeks.length, bw = Math.min(22, slot - 6);
+      const y = v => CH.t + ph - (v / max) * ph;
+      const grid = [0, max / 2, max].map(v => `
+        <line x1="${CH.l}" x2="${CH.w - CH.r}" y1="${y(v)}" y2="${y(v)}" stroke="${CH.grid}" stroke-width="1"/>
+        <text x="${CH.l - 6}" y="${y(v) + 3}" text-anchor="end" font-size="9" fill="${CH.axis}">${v}</text>`).join('');
+      const bars = weeks.map((w, i) => {
+        const x = CH.l + i * slot + (slot - bw) / 2, top = y(w.count), hgt = CH.t + ph - top;
+        const label = w.start.toLocaleDateString('pl-PL', { day: 'numeric', month: 'numeric' });
+        const r = Math.min(4, hgt / 2);
+        const path = w.count > 0
+          ? `<path d="M${x},${CH.t + ph} V${top + r} Q${x},${top} ${x + r},${top} H${x + bw - r} Q${x + bw},${top} ${x + bw},${top + r} V${CH.t + ph} Z" fill="${CH.mark}"/>`
+          : '';
+        return `${path}
+          <text x="${x + bw / 2}" y="${CH.h - 8}" text-anchor="middle" font-size="9" fill="${CH.axis}">${label}</text>
+          <rect x="${CH.l + i * slot}" y="${CH.t}" width="${slot}" height="${ph}" fill="transparent" data-tip="Tydzień od ${label}: ${w.count} tren."/>`;
+      }).join('');
+      el.innerHTML = `<svg viewBox="0 0 ${CH.w} ${CH.h}" class="w-full h-auto" role="img" aria-label="Liczba treningów w ostatnich 8 tygodniach">${grid}${bars}</svg>${tipEl}`;
+      attachTips(el);
+    }
+
+    function exerciseSeries(name) {
+      return state.history
+        .filter(h => !h.timeBased && (h.exercises || []).some(e => e.name === name))
+        .map(h => ({ ts: entryTs(h), date: h.date, kg: Math.max(...h.exercises.find(e => e.name === name).sets.map(s => s.weight || 0)) }))
+        .filter(p => p.kg > 0)
+        .sort((a, b) => a.ts - b.ts)
+        .slice(-20);
+    }
+
+    function renderExerciseChart() {
+      const sel = document.getElementById('chart-exercise-select');
+      const el = document.getElementById('chart-exercise');
+      const names = [...new Set(state.history.filter(h => !h.timeBased)
+        .flatMap(h => (h.exercises || []).filter(e => e.sets.some(s => s.weight > 0)).map(e => e.name)))];
+      if (!names.length) {
+        sel.classList.add('hidden');
+        el.innerHTML = '<p class="text-[11px] text-slate-500 py-6 text-center">Wykres pojawi się po zapisaniu treningów z ciężarem.</p>';
+        return;
+      }
+      sel.classList.remove('hidden');
+      const current = names.includes(sel.value) ? sel.value : names[0];
+      sel.innerHTML = names.map(n => `<option ${n === current ? 'selected' : ''}>${escHtml(n)}</option>`).join('');
+
+      const pts = exerciseSeries(current);
+      const minV = Math.max(0, Math.floor(Math.min(...pts.map(p => p.kg)) * 0.9));
+      const maxV = Math.ceil(Math.max(...pts.map(p => p.kg)) * 1.05) || 1;
+      const pw = CH.w - CH.l - CH.r, ph = CH.h - CH.t - CH.b;
+      const x = i => CH.l + (pts.length === 1 ? pw / 2 : (i / (pts.length - 1)) * pw);
+      const y = v => CH.t + ph - ((v - minV) / (maxV - minV || 1)) * ph;
+      const grid = [minV, (minV + maxV) / 2, maxV].map(v => `
+        <line x1="${CH.l}" x2="${CH.w - CH.r}" y1="${y(v)}" y2="${y(v)}" stroke="${CH.grid}" stroke-width="1"/>
+        <text x="${CH.l - 6}" y="${y(v) + 3}" text-anchor="end" font-size="9" fill="${CH.axis}">${Math.round(v)}</text>`).join('');
+      const line = pts.length > 1 ? `<polyline points="${pts.map((p, i) => `${x(i)},${y(p.kg)}`).join(' ')}" fill="none" stroke="${CH.mark}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>` : '';
+      const dots = pts.map((p, i) => `
+        <circle cx="${x(i)}" cy="${y(p.kg)}" r="4" fill="${CH.mark}" stroke="#0b1120" stroke-width="2"/>
+        <circle cx="${x(i)}" cy="${y(p.kg)}" r="12" fill="transparent" data-tip="${escHtml(p.date)}: ${p.kg} kg"/>`).join('');
+      const first = pts[0], last = pts[pts.length - 1];
+      const fmt = p => new Date(p.ts).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' });
+      const xlab = `<text x="${CH.l}" y="${CH.h - 8}" font-size="9" fill="${CH.axis}">${fmt(first)}</text>` +
+        (pts.length > 1 ? `<text x="${CH.w - CH.r}" y="${CH.h - 8}" text-anchor="end" font-size="9" fill="${CH.axis}">${fmt(last)}</text>` : '');
+      const lastLbl = `<text x="${Math.min(x(pts.length - 1), CH.w - CH.r - 2)}" y="${y(last.kg) - 9}" text-anchor="end" font-size="10" font-weight="700" fill="#e2e8f0">${last.kg} kg</text>`;
+      el.innerHTML = `<svg viewBox="0 0 ${CH.w} ${CH.h}" class="w-full h-auto" role="img" aria-label="Największy ciężar w ćwiczeniu ${escHtml(current)}">${grid}${line}${dots}${xlab}${lastLbl}</svg>${tipEl}`;
+      attachTips(el);
+    }
+
     function renderHistory() {
       renderHistoryStats();
+      renderWeeklyChart();
+      renderExerciseChart();
       const container = document.getElementById('history-list');
       if (state.history.length === 0) {
         container.innerHTML = `<div class="text-center py-8 text-slate-500 text-xs">Brak zapisanych treningów.</div>`;
@@ -770,7 +1083,8 @@
     function exportBackup() {
       const data = {
         app: 'gory-sila', version: 1, exportedAt: new Date().toISOString(),
-        history: state.history, templates: state.templates, monthlyPlan: state.monthlyPlan
+        history: state.history, templates: state.templates, monthlyPlan: state.monthlyPlan,
+        planStart: state.planStart, planDisciplines: state.planDisciplines, goal: state.goal
       };
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const a = document.createElement('a');
@@ -792,6 +1106,9 @@
           state.history = data.history;
           if (data.templates) { state.templates = data.templates; localStorage.setItem('gs_templates_v6', JSON.stringify(state.templates)); }
           if (data.monthlyPlan) { state.monthlyPlan = data.monthlyPlan; localStorage.setItem('gs_monthly_plan_v3', JSON.stringify(state.monthlyPlan)); }
+          if (data.planStart) { state.planStart = data.planStart; localStorage.setItem('gs_plan_start', data.planStart); }
+          if (data.planDisciplines) { state.planDisciplines = data.planDisciplines; localStorage.setItem('gs_plan_disciplines', JSON.stringify(data.planDisciplines)); }
+          if (data.goal !== undefined) { state.goal = data.goal; data.goal ? localStorage.setItem('gs_goal', JSON.stringify(data.goal)) : localStorage.removeItem('gs_goal'); renderGoal(); }
           saveHistory();
           applySuggestion();
           renderHistory();
@@ -1031,7 +1348,12 @@
     ['hiit-work-input', 'hiit-rest-input', 'hiit-rounds-input'].forEach(id =>
       document.getElementById(id).addEventListener('input', () => { if (!hiitStarted) resetHIIT(); }));
 
+    if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
+      renderGoal();
       applySuggestion();
       switchTab('flow');
       resetHIIT();
