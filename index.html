@@ -52,6 +52,19 @@
       </div>
     </div>
     
+    <!-- INSTALACJA APLIKACJI -->
+    <div id="install-banner" class="hidden mb-6 bg-gradient-to-r from-accent/25 to-accentLight/15 border border-accent/50 rounded-2xl p-4">
+      <div class="flex items-start gap-3">
+        <img src="icon-192.png" alt="" class="w-12 h-12 rounded-xl shrink-0">
+        <div class="flex-1 min-w-0">
+          <p id="install-title" class="text-sm font-bold text-white">Zainstaluj Góry & Siła</p>
+          <p id="install-text" class="text-xs text-slate-300 mt-0.5">Ikonka na ekranie telefonu, pełny ekran i działanie bez internetu. Za darmo.</p>
+          <button id="install-btn" onclick="installApp()" class="mt-3 px-4 py-2.5 bg-accent hover:bg-orange-600 text-white text-sm font-bold rounded-xl shadow-lg transition">📲 Zainstaluj aplikację</button>
+        </div>
+        <button onclick="dismissInstall()" class="text-slate-400 hover:text-white text-xl leading-none px-1" aria-label="Zamknij">×</button>
+      </div>
+    </div>
+
     <!-- PASEK NAWIGACJI -->
     <nav class="flex flex-wrap bg-cardBg p-1.5 rounded-xl border border-cardBorder text-xs sm:text-sm font-semibold mb-6 gap-1">
       <button onclick="switchTab('flow')" id="tab-btn-flow" class="tab-btn flex-1 min-w-[110px] py-2.5 rounded-lg transition-all text-slate-400 hover:text-white">
@@ -299,6 +312,18 @@
       </div>
     </main>
 
+  </div>
+
+  <!-- Instrukcja instalacji (iPhone / inne przeglądarki) -->
+  <div id="install-help" class="hidden fixed inset-0 z-50 bg-black/75 flex items-end sm:items-center justify-center" onclick="if (event.target === this) closeInstallHelp()">
+    <div class="bg-cardBg border border-cardBorder w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl p-6 space-y-4">
+      <div class="flex items-center justify-between">
+        <h2 class="text-base font-bold text-white">Jak zainstalować</h2>
+        <button onclick="closeInstallHelp()" class="text-slate-400 hover:text-white text-xl leading-none px-2" aria-label="Zamknij">×</button>
+      </div>
+      <ol id="install-steps" class="space-y-3"></ol>
+      <button onclick="closeInstallHelp()" class="w-full py-3 bg-accent text-white text-sm font-bold rounded-xl">Rozumiem</button>
+    </div>
   </div>
 
   <!-- Wybór ćwiczenia z bazy -->
@@ -1538,11 +1563,108 @@
 
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePicker(); });
 
+    /* ---------- Przycisk instalacji ---------- */
+    const UA = navigator.userAgent || '';
+    const isIOS = /iPhone|iPad|iPod/i.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const isAndroid = /Android/i.test(UA);
+    const inAppBrowser = /Instagram|FBAN|FBAV|FB_IAB|Messenger|TikTok|Line\//i.test(UA);
+    const isStandalone = () => window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+    let deferredInstall = null;
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredInstall = e;
+      updateInstallBanner();
+    });
+    window.addEventListener('appinstalled', () => {
+      deferredInstall = null;
+      document.getElementById('install-banner').classList.add('hidden');
+      showToast('Zainstalowano! Ikonka jest na ekranie telefonu.');
+    });
+
+    function installDismissed() {
+      try { return Date.now() - (parseInt(localStorage.getItem('gs_install_dismissed')) || 0) < 7 * 86400000; } catch (e) { return false; }
+    }
+    function dismissInstall() {
+      try { localStorage.setItem('gs_install_dismissed', String(Date.now())); } catch (e) {}
+      document.getElementById('install-banner').classList.add('hidden');
+    }
+
+    function updateInstallBanner() {
+      const banner = document.getElementById('install-banner');
+      if (isStandalone() || installDismissed()) { banner.classList.add('hidden'); return; }
+      const title = document.getElementById('install-title');
+      const text = document.getElementById('install-text');
+      const btn = document.getElementById('install-btn');
+      if (inAppBrowser) {
+        title.textContent = 'Otwórz w przeglądarce, żeby zainstalować';
+        text.textContent = isIOS
+          ? 'Instagram nie pozwala instalować aplikacji. Dotknij ⋯ w prawym górnym rogu i wybierz „Otwórz w przeglądarce zewnętrznej”.'
+          : 'Instagram nie pozwala instalować aplikacji. Otwórz stronę w Chrome – tam zainstalujesz ją jednym kliknięciem.';
+        btn.textContent = isIOS ? 'Pokaż jak' : '🌐 Otwórz w Chrome';
+      } else {
+        title.textContent = 'Zainstaluj Góry & Siła';
+        text.textContent = 'Ikonka na ekranie telefonu, pełny ekran i działanie bez internetu. Za darmo.';
+        btn.textContent = '📲 Zainstaluj aplikację';
+      }
+      // Na komputerze pokazujemy tylko, gdy przeglądarka sama oferuje instalację
+      const show = inAppBrowser || deferredInstall || isIOS || isAndroid;
+      banner.classList.toggle('hidden', !show);
+    }
+
+    const step = (n, html) => `
+      <li class="flex gap-3 items-start">
+        <span class="w-7 h-7 rounded-full bg-accent/20 border border-accent text-accentLight text-xs font-bold flex items-center justify-center shrink-0">${n}</span>
+        <span class="text-sm text-slate-200 pt-1">${html}</span>
+      </li>`;
+    const shareIcon = '<svg class="inline w-4 h-4 -mt-1 text-sky-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>';
+
+    function openInstallHelp(steps) {
+      document.getElementById('install-steps').innerHTML = steps.map((s, i) => step(i + 1, s)).join('');
+      document.getElementById('install-help').classList.remove('hidden');
+    }
+    function closeInstallHelp() { document.getElementById('install-help').classList.add('hidden'); }
+
+    async function installApp() {
+      if (inAppBrowser) {
+        if (isAndroid) {
+          const url = location.href.replace(/^https?:\/\//, '');
+          location.href = `intent://${url}#Intent;scheme=https;package=com.android.chrome;end`;
+          return;
+        }
+        return openInstallHelp([
+          'Dotknij <b>⋯</b> w prawym górnym rogu Instagrama.',
+          'Wybierz <b>„Otwórz w przeglądarce zewnętrznej”</b> (Safari).',
+          'W Safari dotknij tego samego przycisku „Zainstaluj aplikację”.'
+        ]);
+      }
+      if (deferredInstall) {
+        deferredInstall.prompt();
+        const choice = await deferredInstall.userChoice.catch(() => null);
+        deferredInstall = null;
+        if (!choice || choice.outcome !== 'accepted') updateInstallBanner();
+        return;
+      }
+      if (isIOS) {
+        return openInstallHelp([
+          `Dotknij przycisku <b>Udostępnij</b> ${shareIcon} na dolnym pasku Safari.`,
+          'Przewiń w dół i wybierz <b>„Do ekranu początkowego”</b>.',
+          'Dotknij <b>„Dodaj”</b> – ikonka Góry & Siła pojawi się na ekranie.'
+        ]);
+      }
+      openInstallHelp([
+        'Otwórz menu przeglądarki <b>⋮</b> w prawym górnym rogu.',
+        'Wybierz <b>„Zainstaluj aplikację”</b> lub <b>„Dodaj do ekranu głównego”</b>.',
+        'Potwierdź – ikonka pojawi się na ekranie telefonu.'
+      ]);
+    }
+
     if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
       window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      updateInstallBanner();
       renderGoal();
       applySuggestion();
       switchTab('flow');
