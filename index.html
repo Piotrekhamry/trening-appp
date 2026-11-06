@@ -31,6 +31,8 @@
   </script>
   <style>
     summary::-webkit-details-marker { display: none; }
+    /* iPhone powiększa stronę przy polach z czcionką mniejszą niż 16px – stąd 16px */
+    input, select, textarea { font-size: 16px !important; }
     body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
     .chart-tip { position: absolute; pointer-events: none; transform: translate(-50%, -110%); white-space: nowrap; }
   </style>
@@ -846,13 +848,13 @@
                 ` : `
                   <div class="flex items-center gap-1.5">
                     <input type="number" inputmode="decimal" step="any" onfocus="clearOnFocus(this)" onblur="restoreIfEmpty(this)" value="${set.reps !== undefined ? set.reps : 8}" onchange="updateSet(${exIdx}, ${setIdx}, 'reps', this.value)" 
-                      class="w-14 bg-slate-900 border border-cardBorder rounded-lg p-1 text-center text-xs text-white font-bold">
+                      class="w-16 bg-slate-900 border border-cardBorder rounded-lg p-1 text-center text-xs text-white font-bold">
                     <span class="text-xs text-slate-500">powt.</span>
                   </div>
 
                   <div class="flex items-center gap-1.5">
                     <input type="number" inputmode="decimal" step="any" onfocus="clearOnFocus(this)" onblur="restoreIfEmpty(this)" value="${set.weight !== undefined ? set.weight : 0}" onchange="updateSet(${exIdx}, ${setIdx}, 'weight', this.value)" 
-                      class="w-14 bg-slate-900 border border-cardBorder rounded-lg p-1 text-center text-xs text-white font-bold">
+                      class="w-16 bg-slate-900 border border-cardBorder rounded-lg p-1 text-center text-xs text-white font-bold">
                     <span class="text-xs text-slate-500">kg</span>
                   </div>
                 `}
