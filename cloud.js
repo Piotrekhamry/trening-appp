@@ -16,6 +16,7 @@ if (!cfg || !cfg.apiKey) {
   // Chmura nieskonfigurowana – aplikacja działa lokalnie, karta konta ukryta.
   window.cloudSignIn = () => {};
   window.cloudSignOut = () => {};
+  window.cloudDeleteAccount = () => {};
 } else {
   initCloud().catch((e) => console.error('[cloud] init', e));
 }
@@ -87,6 +88,55 @@ async function initCloud() {
     await A.signOut(auth);
   };
 
+  /* ---------- Usunięcie konta i wszystkich danych ---------- */
+  const PENDING_DELETE = 'gs_pending_account_delete';
+
+  window.cloudDeleteAccount = async () => {
+    if (!user) return;
+    if (!confirm('Usunąć konto w Góry & Siła?\n\nZnikną wszystkie Twoje treningi, szablony i ustawienia – w chmurze i na tym urządzeniu. Tego nie da się cofnąć.')) return;
+    if (!confirm('Na pewno? Ostatnie potwierdzenie – wszystkie dane zostaną trwale usunięte.')) return;
+    await deleteEverything();
+  };
+
+  async function deleteEverything() {
+    setStatus('Usuwam dane…');
+    try {
+      unsubs.forEach((f) => f()); unsubs = [];
+      // 1) dane w chmurze
+      const snap = await F.getDocs(workoutsCol());
+      for (let i = 0; i < snap.docs.length; i += 400) {
+        const batch = F.writeBatch(db);
+        snap.docs.slice(i, i + 400).forEach((d) => batch.delete(d.ref));
+        await batch.commit();
+      }
+      await F.deleteDoc(settingsDoc());
+      // 2) samo konto logowania (Google wymaga świeżego zalogowania)
+      try {
+        await A.deleteUser(user);
+      } catch (e) {
+        if (e.code === 'auth/requires-recent-login') {
+          localStorage.setItem(PENDING_DELETE, user.uid);
+          alert('Dla bezpieczeństwa Google prosi o ponowne zalogowanie. Po zalogowaniu usuwanie dokończy się samo.');
+          if (standalone || isMobile) return A.reauthenticateWithRedirect(user, provider);
+          await A.reauthenticateWithPopup(user, provider);
+          await A.deleteUser(user);
+        } else throw e;
+      }
+      finishLocalWipe();
+    } catch (e) {
+      console.error('[cloud] delete', e);
+      alert('Nie udało się usunąć wszystkiego: ' + (e.code || e.message) + '\nSpróbuj ponownie albo napisz do mnie przez „Zgłoś uwagi”.');
+      setStatus('Błąd usuwania');
+    }
+  }
+
+  function finishLocalWipe() {
+    localStorage.removeItem(PENDING_DELETE);
+    Object.keys(localStorage).filter((k) => k.startsWith('gs_')).forEach((k) => origRemove.call(localStorage, k));
+    alert('Konto i wszystkie dane zostały usunięte.');
+    location.reload();
+  }
+
   A.getRedirectResult(auth).catch((e) => {
     if (e.code && e.code !== 'auth/no-auth-event') alert('Nie udało się zalogować: ' + e.code);
   });
@@ -96,6 +146,12 @@ async function initCloud() {
     user = u;
     renderAccount();
     if (!u) return;
+    // Powrót po ponownym zalogowaniu w trakcie usuwania konta
+    if (localStorage.getItem(PENDING_DELETE) === u.uid) {
+      try { await A.deleteUser(u); finishLocalWipe(); }
+      catch (e) { localStorage.removeItem(PENDING_DELETE); alert('Nie udało się usunąć konta: ' + (e.code || e.message)); }
+      return;
+    }
     setStatus('Synchronizuję…');
     try {
       await firstMerge();
