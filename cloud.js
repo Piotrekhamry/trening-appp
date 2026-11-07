@@ -41,7 +41,7 @@ async function initCloud() {
   });
 
   const SETTINGS_KEYS = ['gs_templates_v6', 'gs_monthly_plan_v3', 'gs_plan_start', 'gs_plan_disciplines',
-    'gs_goal', 'gs_custom_exercises', 'gs_current_workout_v1'];
+    'gs_goal', 'gs_custom_exercises', 'gs_current_workout_v1', 'gs_profile'];
   const HISTORY_KEY = 'gs_history_v3';
 
   let user = null;
@@ -177,6 +177,7 @@ async function initCloud() {
       planDisciplines: state.planDisciplines,
       goal: state.goal || null,
       customExercises: state.customExercises || [],
+      profile: state.profile || null,
       draft: JSON.parse(localStorage.getItem('gs_current_workout_v1') || 'null')
     };
   }
@@ -252,6 +253,11 @@ async function initCloud() {
       if (d.planDisciplines) { state.planDisciplines = d.planDisciplines; localStorage.setItem('gs_plan_disciplines', JSON.stringify(d.planDisciplines)); }
       state.goal = d.goal || null;
       d.goal ? localStorage.setItem('gs_goal', JSON.stringify(d.goal)) : localStorage.removeItem('gs_goal');
+      if (d.profile && typeof PROFILES !== 'undefined' && PROFILES[d.profile] && d.profile !== state.profile) {
+        state.profile = d.profile; localStorage.setItem('gs_profile', d.profile);
+        if (!state.dirty) applySuggestion(); else renderDisciplineSelector();
+        closeProfilePicker();
+      }
       if (Array.isArray(d.customExercises)) { state.customExercises = d.customExercises; localStorage.setItem('gs_custom_exercises', JSON.stringify(d.customExercises)); }
 
       // Trening w toku z innego urządzenia – tylko jeśli tu nic nie jest w toku

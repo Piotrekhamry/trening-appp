@@ -105,6 +105,10 @@
             <h2 id="current-discipline-title" class="text-xl font-bold text-white mt-1">Siłownia</h2>
             <p id="suggestion-reason" class="text-xs text-slate-400 mt-1"></p>
           </div>
+          <button onclick="openProfilePicker()" id="profile-chip" class="shrink-0 self-start ml-3 px-3 py-1.5 rounded-lg border border-cardBorder bg-appBg hover:border-accent text-[11px] font-semibold text-slate-300 transition text-right leading-tight">
+            <span class="text-[9px] uppercase tracking-wider text-slate-500 block">Tryb</span>
+            <span id="profile-chip-name">Góry & Siła</span> ▾
+          </button>
         </div>
 
         <div class="grid grid-cols-2 sm:grid-cols-6 gap-2" id="discipline-selector">
@@ -365,6 +369,20 @@
 
   </div>
 
+  <!-- Wybór trybu treningu -->
+  <div id="profile-modal" class="hidden fixed inset-0 z-50 bg-black/75 flex items-end sm:items-center justify-center" onclick="if (event.target === this && state.profile) closeProfilePicker()">
+    <div class="bg-cardBg border border-cardBorder w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl p-6 space-y-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-start justify-between gap-3">
+        <div>
+          <h2 id="profile-modal-title" class="text-lg font-bold text-white">Jak trenujesz?</h2>
+          <p class="text-xs text-slate-400 mt-1">Od trybu zależą rodzaje treningów, szablony i to, co podpowiada inteligentna sugestia. Możesz go zmienić w każdej chwili.</p>
+        </div>
+        <button id="profile-modal-close" onclick="closeProfilePicker()" class="text-slate-400 hover:text-white text-xl leading-none px-2" aria-label="Zamknij">×</button>
+      </div>
+      <div id="profile-options" class="space-y-2"></div>
+    </div>
+  </div>
+
   <!-- Instrukcja instalacji (iPhone / inne przeglądarki) -->
   <div id="install-help" class="hidden fixed inset-0 z-50 bg-black/75 flex items-end sm:items-center justify-center" onclick="if (event.target === this) closeInstallHelp()">
     <div class="bg-cardBg border border-cardBorder w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl p-6 space-y-4">
@@ -401,6 +419,7 @@
   <script src="exercises.js"></script>
   <script src="firebase-config.js"></script>
   <script>
+    // Podstawowe dyscypliny – używane też jako kategorie w bazie ćwiczeń
     const DISCIPLINES = [
       { id: 'silownia', name: 'Siłownia' },
       { id: 'kettlebell', name: 'Kettlebell' },
@@ -409,6 +428,38 @@
       { id: 'gory', name: 'Góry (Wyjazd)' },
       { id: 'wolne', name: 'Wolne / Regen' }
     ];
+
+    // Rodzaje treningów w trybach specjalistycznych.
+    // base = dyscyplina bazowa (sposób zapisu i ćwiczenia z bazy), kind = rola w planie
+    const EXTRA_TYPES = [
+      { id: 'bieg_lekki', name: 'Bieg spokojny', base: 'bieganie', kind: 'easy' },
+      { id: 'bieg_interwaly', name: 'Interwały', base: 'bieganie', kind: 'hard' },
+      { id: 'bieg_tempo', name: 'Bieg tempowy', base: 'bieganie', kind: 'hard' },
+      { id: 'bieg_podbiegi', name: 'Podbiegi', base: 'bieganie', kind: 'hard' },
+      { id: 'bieg_dlugi', name: 'Długie wybieganie', base: 'bieganie', kind: 'long' },
+      { id: 'kult_push', name: 'Push (klatka, barki, triceps)', short: 'Push', base: 'silownia', kind: 'split' },
+      { id: 'kult_pull', name: 'Pull (plecy, biceps)', short: 'Pull', base: 'silownia', kind: 'split' },
+      { id: 'kult_nogi', name: 'Nogi', base: 'silownia', kind: 'split' },
+      { id: 'kal_push', name: 'Pchanie (pompki, dipy)', short: 'Pchanie', base: 'kalistenika', kind: 'split' },
+      { id: 'kal_pull', name: 'Ciągnięcie (podciąganie)', short: 'Ciągnięcie', base: 'kalistenika', kind: 'split' },
+      { id: 'kal_nogi', name: 'Nogi i core', base: 'kalistenika', kind: 'split' }
+    ];
+    const ALL_TYPES = [...DISCIPLINES.map(d => ({ ...d, base: d.id })), ...EXTRA_TYPES];
+    const typeOf = (id) => ALL_TYPES.find(t => t.id === id);
+    const baseOf = (id) => (typeOf(id) || {}).base || id;
+
+    const PROFILES = {
+      gory: { name: 'Góry & Siła', icon: '🏔️', desc: 'Wszechstronnie: siłownia, kettle, kalistenika, bieganie i wyjścia w góry.',
+              types: ['silownia', 'kettlebell', 'kalistenika', 'bieganie', 'gory', 'wolne'], engine: 'gory' },
+      bieganie: { name: 'Bieganie', icon: '🏃', desc: 'Spokojne biegi, interwały, tempo, podbiegi i długie wybieganie w weekend.',
+              types: ['bieg_lekki', 'bieg_interwaly', 'bieg_tempo', 'bieg_podbiegi', 'bieg_dlugi', 'wolne'], engine: 'run', maxStreak: 4 },
+      kulturystyka: { name: 'Kulturystyka', icon: '🏋️', desc: 'Siłownia w splicie Push / Pull / Nogi, po trzech dniach przerwa.',
+              types: ['kult_push', 'kult_pull', 'kult_nogi', 'wolne'], engine: 'split', split: ['kult_push', 'kult_pull', 'kult_nogi'], maxStreak: 3 },
+      kalistenika: { name: 'Kalistenika', icon: '🤸', desc: 'Trening z masą ciała: pchanie, ciągnięcie, nogi i core.',
+              types: ['kal_push', 'kal_pull', 'kal_nogi', 'wolne'], engine: 'split', split: ['kal_push', 'kal_pull', 'kal_nogi'], maxStreak: 3 }
+    };
+    const currentProfile = () => PROFILES[state.profile] || PROFILES.gory;
+    const profileTypes = () => currentProfile().types.map(typeOf);
 
     const DEFAULT_TEMPLATES = {
       silownia: [
@@ -452,6 +503,73 @@
         { name: 'Mobilizacja bioder i klatki piersiowej', sets: [{ reps: 10, weight: 0, done: false }] },
         { name: 'Joga / Stretches pod kręgosłup', sets: [{ reps: 15, weight: 0, done: false }] },
         { name: 'Spacer regeneracyjny i ćwiczenia oddechowe', sets: [{ reps: 20, weight: 0, done: false }] }
+      ],
+      bieg_lekki: [
+        { name: 'Rozgrzewkowy trucht', sets: [{ time: 10, calories: 80, done: false }] },
+        { name: 'Bieg spokojny w strefie 2', sets: [{ time: 35, calories: 320, done: false }] },
+        { name: 'Rytmy / Przyspieszenia', sets: [{ time: 5, calories: 60, done: false }] },
+        { name: 'Schłodzenie / Schodzenie z tętna', sets: [{ time: 5, calories: 30, done: false }] }
+      ],
+      bieg_interwaly: [
+        { name: 'Rozgrzewkowy trucht', sets: [{ time: 15, calories: 120, done: false }] },
+        { name: 'Interwały 400 m', sets: [{ time: 25, calories: 300, done: false }] },
+        { name: 'Schłodzenie / Schodzenie z tętna', sets: [{ time: 10, calories: 60, done: false }] }
+      ],
+      bieg_tempo: [
+        { name: 'Rozgrzewkowy trucht', sets: [{ time: 15, calories: 120, done: false }] },
+        { name: 'Bieg tempowy (próg)', sets: [{ time: 25, calories: 320, done: false }] },
+        { name: 'Schłodzenie / Schodzenie z tętna', sets: [{ time: 10, calories: 60, done: false }] }
+      ],
+      bieg_podbiegi: [
+        { name: 'Rozgrzewkowy trucht', sets: [{ time: 15, calories: 120, done: false }] },
+        { name: 'Podbiegi pod górę', sets: [{ time: 20, calories: 250, done: false }] },
+        { name: 'Schłodzenie / Schodzenie z tętna', sets: [{ time: 10, calories: 60, done: false }] }
+      ],
+      bieg_dlugi: [
+        { name: 'Długie wybieganie', sets: [{ time: 70, calories: 650, done: false }] },
+        { name: 'Schłodzenie / Schodzenie z tętna', sets: [{ time: 5, calories: 30, done: false }] }
+      ],
+      kult_push: [
+        { name: 'Wyciskanie leżąc', sets: [{ reps: 8, weight: 70, done: false }, { reps: 8, weight: 70, done: false }, { reps: 8, weight: 70, done: false }, { reps: 8, weight: 70, done: false }] },
+        { name: 'Wyciskanie hantli na skosie', sets: [{ reps: 10, weight: 24, done: false }, { reps: 10, weight: 24, done: false }, { reps: 10, weight: 24, done: false }] },
+        { name: 'Wyciskanie żołnierskie (OHP)', sets: [{ reps: 8, weight: 40, done: false }, { reps: 8, weight: 40, done: false }, { reps: 8, weight: 40, done: false }] },
+        { name: 'Unoszenie hantli bokiem', sets: [{ reps: 12, weight: 8, done: false }, { reps: 12, weight: 8, done: false }, { reps: 12, weight: 8, done: false }] },
+        { name: 'Prostowanie ramion na wyciągu', sets: [{ reps: 12, weight: 20, done: false }, { reps: 12, weight: 20, done: false }, { reps: 12, weight: 20, done: false }] }
+      ],
+      kult_pull: [
+        { name: 'Ściąganie drążka wyciągu do klatki', sets: [{ reps: 10, weight: 50, done: false }, { reps: 10, weight: 50, done: false }, { reps: 10, weight: 50, done: false }, { reps: 10, weight: 50, done: false }] },
+        { name: 'Wiosłowanie sztangą w opadzie', sets: [{ reps: 8, weight: 60, done: false }, { reps: 8, weight: 60, done: false }, { reps: 8, weight: 60, done: false }, { reps: 8, weight: 60, done: false }] },
+        { name: 'Wiosłowanie hantlem jednorącz', sets: [{ reps: 10, weight: 26, done: false }, { reps: 10, weight: 26, done: false }, { reps: 10, weight: 26, done: false }] },
+        { name: 'Face pull', sets: [{ reps: 15, weight: 15, done: false }, { reps: 15, weight: 15, done: false }, { reps: 15, weight: 15, done: false }] },
+        { name: 'Uginanie ramion ze sztangą', sets: [{ reps: 10, weight: 25, done: false }, { reps: 10, weight: 25, done: false }, { reps: 10, weight: 25, done: false }] }
+      ],
+      kult_nogi: [
+        { name: 'Przysiad ze sztangą z tyłu', sets: [{ reps: 8, weight: 80, done: false }, { reps: 8, weight: 80, done: false }, { reps: 8, weight: 80, done: false }, { reps: 8, weight: 80, done: false }] },
+        { name: 'Martwy ciąg rumuński', sets: [{ reps: 10, weight: 70, done: false }, { reps: 10, weight: 70, done: false }, { reps: 10, weight: 70, done: false }] },
+        { name: 'Wypychanie na suwnicy', sets: [{ reps: 12, weight: 120, done: false }, { reps: 12, weight: 120, done: false }, { reps: 12, weight: 120, done: false }] },
+        { name: 'Wykroki ze sztangą', sets: [{ reps: 10, weight: 40, done: false }, { reps: 10, weight: 40, done: false }, { reps: 10, weight: 40, done: false }] },
+        { name: 'Wspięcia na palce', sets: [{ reps: 15, weight: 40, done: false }, { reps: 15, weight: 40, done: false }, { reps: 15, weight: 40, done: false }, { reps: 15, weight: 40, done: false }] }
+      ],
+      kal_push: [
+        { name: 'Pompki na poręczach (Dipy)', sets: [{ reps: 8, weight: 0, done: false }, { reps: 8, weight: 0, done: false }, { reps: 8, weight: 0, done: false }, { reps: 8, weight: 0, done: false }] },
+        { name: 'Pompki klasyczne', sets: [{ reps: 15, weight: 0, done: false }, { reps: 15, weight: 0, done: false }, { reps: 15, weight: 0, done: false }] },
+        { name: 'Pompki pike (na barki)', sets: [{ reps: 10, weight: 0, done: false }, { reps: 10, weight: 0, done: false }, { reps: 10, weight: 0, done: false }] },
+        { name: 'Pompki diamentowe', sets: [{ reps: 10, weight: 0, done: false }, { reps: 10, weight: 0, done: false }, { reps: 10, weight: 0, done: false }] },
+        { name: 'Plank (Deska)', sets: [{ reps: 45, weight: 0, done: false }, { reps: 45, weight: 0, done: false }, { reps: 45, weight: 0, done: false }] }
+      ],
+      kal_pull: [
+        { name: 'Podciąganie na drążku (Nachwyt)', sets: [{ reps: 6, weight: 0, done: false }, { reps: 6, weight: 0, done: false }, { reps: 6, weight: 0, done: false }, { reps: 6, weight: 0, done: false }] },
+        { name: 'Podciąganie podchwytem', sets: [{ reps: 8, weight: 0, done: false }, { reps: 8, weight: 0, done: false }, { reps: 8, weight: 0, done: false }] },
+        { name: 'Australijskie podciąganie', sets: [{ reps: 12, weight: 0, done: false }, { reps: 12, weight: 0, done: false }, { reps: 12, weight: 0, done: false }] },
+        { name: 'Wznosy nóg w zwisie na drążku', sets: [{ reps: 10, weight: 0, done: false }, { reps: 10, weight: 0, done: false }, { reps: 10, weight: 0, done: false }] },
+        { name: 'Hollow body', sets: [{ reps: 30, weight: 0, done: false }, { reps: 30, weight: 0, done: false }, { reps: 30, weight: 0, done: false }] }
+      ],
+      kal_nogi: [
+        { name: 'Pistolety (Przysiady na jednej nodze)', sets: [{ reps: 5, weight: 0, done: false }, { reps: 5, weight: 0, done: false }, { reps: 5, weight: 0, done: false }] },
+        { name: 'Przysiad skoczny', sets: [{ reps: 12, weight: 0, done: false }, { reps: 12, weight: 0, done: false }, { reps: 12, weight: 0, done: false }] },
+        { name: 'Wykroki chodzone', sets: [{ reps: 20, weight: 0, done: false }, { reps: 20, weight: 0, done: false }, { reps: 20, weight: 0, done: false }] },
+        { name: 'Wspięcia na palce', sets: [{ reps: 20, weight: 0, done: false }, { reps: 20, weight: 0, done: false }, { reps: 20, weight: 0, done: false }] },
+        { name: 'Deska boczna', sets: [{ reps: 30, weight: 0, done: false }, { reps: 30, weight: 0, done: false }, { reps: 30, weight: 0, done: false }] }
       ]
     };
 
@@ -478,7 +596,8 @@
     let state = {
       activeTab: 'flow',
       selectedDiscipline: 'silownia',
-      templates: JSON.parse(localStorage.getItem('gs_templates_v6')) || DEFAULT_TEMPLATES,
+      templates: { ...DEFAULT_TEMPLATES, ...(JSON.parse(localStorage.getItem('gs_templates_v6')) || {}) },
+      profile: localStorage.getItem('gs_profile') || null,
       workout: [],
       history: JSON.parse(localStorage.getItem('gs_history_v3')) || [],
       monthlyPlan: JSON.parse(localStorage.getItem('gs_monthly_plan_v3')) || DEFAULT_MONTHLY_PLAN,
@@ -550,7 +669,7 @@
           }));
           hint = `Plan – ${plan.item.month}: ${plan.reps} powt. × ${plan.sets} serie`;
         } else if (prev && prev.e.allDone) {
-          const heavy = discId === 'silownia' && sets.some(s => s.weight > 0);
+          const heavy = baseOf(discId) === 'silownia' && sets.some(s => s.weight > 0);
           sets = sets.map(s => heavy ? { ...s, weight: Math.round((s.weight + 2.5) * 10) / 10 } : { ...s, reps: s.reps + 1 });
           hint = heavy ? '↑ +2,5 kg – ostatnio wszystkie serie zaliczone' : '↑ +1 powtórzenie – ostatnio wszystkie serie zaliczone';
         }
@@ -610,8 +729,8 @@
     /* ---------- Inteligentna sugestia ---------- */
     const STRENGTH = ['silownia', 'kettlebell', 'kalistenika'];
     const ROTATION = ['silownia', 'bieganie', 'kettlebell', 'kalistenika'];
-    const NAME_TO_ID = Object.fromEntries(DISCIPLINES.map(d => [d.name, d.id]));
-    const discName = (id) => (DISCIPLINES.find(d => d.id === id) || {}).name || id;
+    const NAME_TO_ID = Object.fromEntries(ALL_TYPES.map(d => [d.name, d.id]));
+    const discName = (id) => (typeOf(id) || {}).name || id;
     const entryDisc = (h) => h.disciplineId || NAME_TO_ID[h.discipline] || null;
     const entryTs = (h) => h.ts || h.id;
 
@@ -622,7 +741,7 @@
     }
     const agoText = (n) => n === 0 ? 'dziś' : n === 1 ? 'wczoraj' : `${n} dni temu`;
 
-    function getSuggestion() {
+    function suggestGory() {
       const hist = state.history
         .map(h => ({ id: entryDisc(h), ts: entryTs(h) }))
         .filter(h => h.id)
@@ -693,6 +812,66 @@
       return { id: pick, reason: `${prev}Teraz ${discName(pick)} – ${sinceText}.${goalTxt}` };
     }
 
+    /* Tryby specjalistyczne: bieganie i splity (kulturystyka, kalistenika) */
+    function getSuggestion() {
+      const p = currentProfile();
+      if (p.engine === 'run') return suggestRun(p);
+      if (p.engine === 'split') return suggestSplit(p);
+      return suggestGory();
+    }
+
+    function historyFacts(p) {
+      const all = state.history.map(h => ({ id: entryDisc(h), ts: entryTs(h) })).filter(h => h.id).sort((a, b) => b.ts - a.ts);
+      const mine = all.filter(h => p.types.includes(h.id));
+      const lastDone = {};
+      mine.forEach(h => { if (lastDone[h.id] === undefined) lastDone[h.id] = daysAgo(h.ts); });
+      const since = (id) => lastDone[id] === undefined ? Infinity : lastDone[id];
+      // dzisiejszy trening i seria dni treningowych liczone ze wszystkich zapisów
+      const last = all[0];
+      const trainedToday = last && daysAgo(last.ts) === 0 && last.id !== 'wolne';
+      const trainedOn = new Set(all.filter(h => h.id !== 'wolne').map(h => daysAgo(h.ts)));
+      const restedOn = new Set(all.filter(h => h.id === 'wolne').map(h => daysAgo(h.ts)));
+      let streak = 0;
+      for (let d = 1; d <= 10 && trainedOn.has(d) && !restedOn.has(d); d++) streak++;
+      const lastTraining = mine.find(h => h.id !== 'wolne');
+      return { all, mine, since, last, trainedToday, streak, lastTraining, ltAgo: lastTraining ? daysAgo(lastTraining.ts) : Infinity };
+    }
+
+    function suggestRun(p) {
+      const f = historyFacts(p);
+      if (!f.lastTraining) return { id: 'bieg_lekki', reason: 'Zacznij od spokojnego biegu w strefie 2. Po pierwszych treningach zacznę układać tydzień.' };
+      if (f.trainedToday) return { id: 'wolne', reason: `Dziś już był trening (${discName(f.last.id)}). Jutro kolejny bieg.` };
+      if (f.streak >= p.maxStreak) return { id: 'wolne', reason: `${f.streak} dni biegania z rzędu. Dzień przerwy pomoże nogom się odbudować.` };
+      const prev = `Ostatnio: ${discName(f.lastTraining.id)} (${agoText(f.ltAgo)}). `;
+      const kind = typeOf(f.lastTraining.id).kind;
+      if ((kind === 'hard' || kind === 'long') && f.ltAgo <= 1) {
+        return { id: 'bieg_lekki', reason: `${prev}Po mocnym biegu dziś spokojnie – luźna strefa 2 albo wolne.` };
+      }
+      const dow = new Date().getDay();
+      if ((dow === 0 || dow === 6) && f.since('bieg_dlugi') >= 6) {
+        return { id: 'bieg_dlugi', reason: `${prev}Weekend to pora na długie wybieganie w spokojnym tempie.` };
+      }
+      const hard = ['bieg_interwaly', 'bieg_tempo', 'bieg_podbiegi'];
+      const sinceHard = Math.min(...hard.map(f.since));
+      if (sinceHard >= 2) {
+        const pick = [...hard].sort((a, b) => f.since(b) - f.since(a) || hard.indexOf(a) - hard.indexOf(b))[0];
+        return { id: pick, reason: `${prev}Pora na mocniejszy bieg – ${discName(pick).toLowerCase()} ${f.since(pick) === Infinity ? 'jeszcze nie było' : 'było ' + agoText(f.since(pick))}.` };
+      }
+      return { id: 'bieg_lekki', reason: `${prev}Między mocnymi treningami – spokojny bieg buduje wytrzymałość.` };
+    }
+
+    function suggestSplit(p) {
+      const f = historyFacts(p);
+      const label = (id) => typeOf(id).short || typeOf(id).name;
+      const planName = p.split.map(label).join(' / ');
+      if (!f.lastTraining) return { id: p.split[0], reason: `Plan ${planName}. Zaczynamy od: ${discName(p.split[0])}.` };
+      if (f.trainedToday) return { id: 'wolne', reason: `Dziś już był trening (${discName(f.last.id)}). Mięśnie rosną w czasie odpoczynku.` };
+      if (f.streak >= p.maxStreak) return { id: 'wolne', reason: `${f.streak} dni treningu z rzędu – czas na dzień przerwy, potem kolejny cykl ${planName}.` };
+      const lastSplit = f.mine.find(h => p.split.includes(h.id));
+      const next = p.split[(p.split.indexOf(lastSplit.id) + 1) % p.split.length];
+      return { id: next, reason: `Ostatnio: ${discName(lastSplit.id)} (${agoText(daysAgo(lastSplit.ts))}). Teraz kolejny dzień planu: ${discName(next)}.` };
+    }
+
     function applySuggestion() {
       const s = getSuggestion();
       state.suggestion = s;
@@ -710,7 +889,8 @@
     }
 
     function isTimeBasedDiscipline(disciplineId) {
-      return disciplineId === 'bieganie' || disciplineId === 'gory';
+      const b = baseOf(disciplineId);
+      return b === 'bieganie' || b === 'gory';
     }
 
     function switchTab(tabId) {
@@ -736,18 +916,21 @@
 
     function renderDisciplineSelector() {
       const container = document.getElementById('discipline-selector');
-      container.innerHTML = DISCIPLINES.map(d => `
+      const types = profileTypes();
+      container.className = `grid gap-2 ${types.length > 4 ? 'grid-cols-2 sm:grid-cols-6' : 'grid-cols-2 sm:grid-cols-4'}`;
+      document.getElementById('profile-chip-name').textContent = currentProfile().icon + ' ' + currentProfile().name;
+      container.innerHTML = types.map(d => `
         <button onclick="selectDiscipline('${d.id}')" 
           class="p-2.5 rounded-xl border text-center transition font-semibold text-xs ${
             state.selectedDiscipline === d.id 
               ? 'bg-accent/20 border-accent text-accentLight' 
               : 'bg-appBg border-cardBorder text-slate-400 hover:bg-slate-800/40'
           }">
-          ${d.name}
+          ${d.short || d.name}
         </button>
       `).join('');
 
-      const activeDiscObj = DISCIPLINES.find(d => d.id === state.selectedDiscipline);
+      const activeDiscObj = typeOf(state.selectedDiscipline);
       if (activeDiscObj) {
         document.getElementById('current-discipline-title').textContent = activeDiscObj.name;
       }
@@ -791,7 +974,7 @@
     function restoreDraft() {
       try {
         const d = JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null');
-        if (!d || !Array.isArray(d.workout) || !DISCIPLINES.some(x => x.id === d.disc)) return false;
+        if (!d || !Array.isArray(d.workout) || !typeOf(d.disc)) return false;
         state.selectedDiscipline = d.disc;
         state.workout = d.workout;
         state.dirty = true;
@@ -1029,7 +1212,7 @@
       }
 
       document.getElementById('plan-start').value = state.planStart || '';
-      document.getElementById('plan-disciplines').innerHTML = DISCIPLINES
+      document.getElementById('plan-disciplines').innerHTML = profileTypes()
         .filter(d => !isTimeBasedDiscipline(d.id) && d.id !== 'wolne')
         .map(d => `
           <button onclick="togglePlanDiscipline('${d.id}')" class="px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
@@ -1097,7 +1280,7 @@
         return;
       }
 
-      const discObj = DISCIPLINES.find(d => d.id === state.selectedDiscipline);
+      const discObj = typeOf(state.selectedDiscipline);
       const exercises = state.workout
         .map(ex => ({
           name: ex.name,
@@ -1321,7 +1504,7 @@
         app: 'gory-sila', version: 1, exportedAt: new Date().toISOString(),
         history: state.history, templates: state.templates, monthlyPlan: state.monthlyPlan,
         planStart: state.planStart, planDisciplines: state.planDisciplines, goal: state.goal,
-        customExercises: state.customExercises
+        customExercises: state.customExercises, profile: state.profile
       };
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const a = document.createElement('a');
@@ -1345,6 +1528,7 @@
           if (data.monthlyPlan) { state.monthlyPlan = data.monthlyPlan; localStorage.setItem('gs_monthly_plan_v3', JSON.stringify(state.monthlyPlan)); }
           if (data.planStart) { state.planStart = data.planStart; localStorage.setItem('gs_plan_start', data.planStart); }
           if (data.planDisciplines) { state.planDisciplines = data.planDisciplines; localStorage.setItem('gs_plan_disciplines', JSON.stringify(data.planDisciplines)); }
+          if (data.profile && PROFILES[data.profile]) { state.profile = data.profile; localStorage.setItem('gs_profile', data.profile); }
           if (Array.isArray(data.customExercises)) { state.customExercises = data.customExercises; localStorage.setItem('gs_custom_exercises', JSON.stringify(data.customExercises)); }
           if (data.goal !== undefined) { state.goal = data.goal; data.goal ? localStorage.setItem('gs_goal', JSON.stringify(data.goal)) : localStorage.removeItem('gs_goal'); renderGoal(); }
           saveHistory();
@@ -1363,10 +1547,11 @@
 
     function renderEditor() {
       const picker = document.getElementById('editor-discipline-picker');
-      picker.innerHTML = DISCIPLINES.map(d => `
+      if (!currentProfile().types.includes(editorDiscipline)) editorDiscipline = currentProfile().types[0];
+      picker.innerHTML = profileTypes().map(d => `
         <button onclick="setEditorDiscipline('${d.id}')" class="p-2 rounded-lg text-xs font-semibold border transition ${
           editorDiscipline === d.id ? 'bg-accent/20 text-accentLight border-accent' : 'bg-appBg border-cardBorder text-slate-400'
-        }">${d.name}</button>
+        }">${d.short || d.name}</button>
       `).join('');
 
       const container = document.getElementById('editor-exercise-list');
@@ -1683,7 +1868,7 @@
       const q = norm(document.getElementById('picker-search').value.trim());
       const all = document.getElementById('picker-all').checked;
       const already = new Set((pickerMode === 'workout' ? state.workout : (state.templates[pickerDisc] || [])).map(e => e.name));
-      const list = allExercises().filter(e => (all || q || e.d.includes(pickerDisc)) && (!q || norm(e.n).includes(q)));
+      const list = allExercises().filter(e => (all || q || e.d.includes(baseOf(pickerDisc))) && (!q || norm(e.n).includes(q)));
       document.getElementById('picker-list').innerHTML = list.length ? list.map(e => `
         <button onclick="pickExercise('${encodeURIComponent(e.n)}')" class="w-full text-left p-2.5 rounded-lg border transition flex items-center justify-between gap-2 ${
           already.has(e.n) ? 'bg-appBg/40 border-cardBorder/50 text-slate-500' : 'bg-appBg border-cardBorder hover:border-accent text-slate-100'}">
@@ -1704,13 +1889,51 @@
       const n = document.getElementById('picker-custom').value.trim();
       if (!n) return;
       if (!findExercise(n)) {
-        state.customExercises.push({ n, d: [pickerDisc], m: isTimeBasedDiscipline(pickerDisc) ? 'Kondycja' : 'Całe ciało', tip: '' });
+        state.customExercises.push({ n, d: [baseOf(pickerDisc)], m: isTimeBasedDiscipline(pickerDisc) ? 'Kondycja' : 'Całe ciało', tip: '' });
         localStorage.setItem('gs_custom_exercises', JSON.stringify(state.customExercises));
       }
       pickExercise(encodeURIComponent(n));
     }
 
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePicker(); });
+
+    /* ---------- Tryb treningu ---------- */
+    function openProfilePicker(firstRun) {
+      document.getElementById('profile-modal-title').textContent = firstRun ? 'Jak trenujesz?' : 'Zmień tryb treningu';
+      document.getElementById('profile-modal-close').classList.toggle('hidden', !!firstRun);
+      document.getElementById('profile-options').innerHTML = Object.entries(PROFILES).map(([id, p]) => {
+        const active = state.profile === id;
+        return `
+        <button onclick="setProfile('${id}')" class="w-full text-left p-4 rounded-xl border transition flex gap-3 items-start ${
+          active ? 'bg-accent/15 border-accent' : 'bg-appBg border-cardBorder hover:border-accent/60'}">
+          <span class="text-2xl leading-none">${p.icon}</span>
+          <span class="min-w-0">
+            <span class="text-sm font-bold text-white block">${p.name}${active ? ' <span class="text-[10px] text-accentLight font-semibold">• obecny</span>' : ''}</span>
+            <span class="text-xs text-slate-400 block mt-0.5">${p.desc}</span>
+            <span class="text-[10px] text-slate-500 block mt-1.5">${p.types.map(t => typeOf(t).short || typeOf(t).name).join(' · ')}</span>
+          </span>
+        </button>`;
+      }).join('');
+      document.getElementById('profile-modal').classList.remove('hidden');
+    }
+
+    function closeProfilePicker() {
+      document.getElementById('profile-modal').classList.add('hidden');
+    }
+
+    function setProfile(id) {
+      if (!PROFILES[id]) return;
+      const changed = state.profile !== id;
+      state.profile = id;
+      localStorage.setItem('gs_profile', id);
+      closeProfilePicker();
+      if (!changed) return;
+      applySuggestion();
+      if (!state.dirty) showToast(`Tryb: ${PROFILES[id].name}`);
+      else showToast(`Tryb: ${PROFILES[id].name}. Trening w toku zostaje – zapisz go albo zacznij od nowa.`);
+      if (state.activeTab === 'editor') renderEditor();
+      if (state.activeTab === 'plan') renderMonthlyPlan();
+    }
 
     /* ---------- Uwagi od użytkowników ---------- */
     const FEEDBACK_EMAIL = 'piotrhamryszczak97@gmail.com';
@@ -1826,6 +2049,12 @@
     window.addEventListener('DOMContentLoaded', () => {
       updateInstallBanner();
       renderGoal();
+      // Dotychczasowi użytkownicy (z historią) zostają w trybie Góry & Siła; nowi wybierają tryb
+      let askProfile = false;
+      if (!state.profile) {
+        if (state.history.length) { state.profile = 'gory'; localStorage.setItem('gs_profile', 'gory'); }
+        else { state.profile = 'gory'; askProfile = true; }
+      }
       if (restoreDraft()) {
         state.suggestion = getSuggestion();
         renderDisciplineSelector();
@@ -1835,6 +2064,7 @@
       } else {
         applySuggestion();
       }
+      if (askProfile) openProfilePicker(true);
       switchTab('flow');
       resetHIIT();
       if (!('wakeLock' in navigator)) {
