@@ -1902,7 +1902,7 @@
       document.getElementById('profile-modal-title').textContent = firstRun ? 'Jak trenujesz?' : 'Zmień tryb treningu';
       document.getElementById('profile-modal-close').classList.toggle('hidden', !!firstRun);
       document.getElementById('profile-options').innerHTML = Object.entries(PROFILES).map(([id, p]) => {
-        const active = state.profile === id;
+        const active = !firstRun && state.profile === id;
         return `
         <button onclick="setProfile('${id}')" class="w-full text-left p-4 rounded-xl border transition flex gap-3 items-start ${
           active ? 'bg-accent/15 border-accent' : 'bg-appBg border-cardBorder hover:border-accent/60'}">
