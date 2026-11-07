@@ -2,7 +2,7 @@
    - pliki aplikacji (ta sama domena): najpierw sieć, żeby od razu widzieć nowe wersje; bez sieci – kopia
    - biblioteki z CDN (Tailwind, Firebase): najpierw kopia, w tle odświeżanie
    - wszystko inne (np. połączenia z bazą Firebase, logowanie) przechodzi bez zmian */
-const CACHE = 'gory-sila-v4';
+const CACHE = 'w-formie-v5';
 const PRECACHE = ['./', './index.html', './exercises.js', './firebase-config.js', './cloud.js', './privacy.html', './manifest.json',
   './icon-192.png', './icon-512.png', './icon-180.png', './image_3bed76.png'];
 const CDN_HOSTS = ['cdn.tailwindcss.com', 'www.gstatic.com'];

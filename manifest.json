@@ -1,7 +1,7 @@
 {
-  "name": "Góry & Siła",
-  "short_name": "Góry & Siła",
-  "description": "System treningowy i przygotowanie w góry",
+  "name": "W Formie",
+  "short_name": "W Formie",
+  "description": "Trening na każdy dzień – od siłowni po szczyt",
   "lang": "pl",
   "start_url": "./index.html",
   "scope": "./",

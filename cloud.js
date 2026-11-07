@@ -1,5 +1,5 @@
 /* ============================================================
-   Góry & Siła – synchronizacja z chmurą (Firebase)
+   W Formie – synchronizacja z chmurą (Firebase)
    ------------------------------------------------------------
    - logowanie przez Google
    - każdy trening to osobny dokument: users/{uid}/workouts/{id}
@@ -93,7 +93,7 @@ async function initCloud() {
 
   window.cloudDeleteAccount = async () => {
     if (!user) return;
-    if (!confirm('Usunąć konto w Góry & Siła?\n\nZnikną wszystkie Twoje treningi, szablony i ustawienia – w chmurze i na tym urządzeniu. Tego nie da się cofnąć.')) return;
+    if (!confirm('Usunąć konto w aplikacji W Formie?\n\nZnikną wszystkie Twoje treningi, szablony i ustawienia – w chmurze i na tym urządzeniu. Tego nie da się cofnąć.')) return;
     if (!confirm('Na pewno? Ostatnie potwierdzenie – wszystkie dane zostaną trwale usunięte.')) return;
     await deleteEverything();
   };

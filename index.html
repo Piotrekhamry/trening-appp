@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Góry & Siła</title>
+  <title>W Formie</title>
   <meta name="theme-color" content="#0b1120">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icon-192.png">
@@ -11,7 +11,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Góry & Siła">
+  <meta name="apple-mobile-web-app-title" content="W Formie">
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
     window.tailwind = window.tailwind || {};
@@ -43,12 +43,12 @@
 
 <!-- BANER -->
     <div class="relative overflow-hidden rounded-2xl border border-cardBorder bg-cardBg mb-6 shadow-xl">
-      <img src="image_3bed76.png" alt="Góry & Siła Banner" class="w-full h-40 object-cover object-center opacity-30">
+      <img src="image_3bed76.png" alt="W Formie" class="w-full h-40 object-cover object-center opacity-30">
       <div class="absolute inset-0 bg-gradient-to-t from-cardBg via-cardBg/60 to-transparent flex items-end p-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between w-full gap-4">
           <div>
-            <h1 class="text-2xl font-bold tracking-tight text-white">Góry & Siła</h1>
-            <p class="text-xs text-slate-400 font-medium">System Treningowy & Przygotowanie w Góry</p>
+            <h1 class="text-2xl font-bold tracking-tight text-white">W Formie</h1>
+            <p class="text-xs text-slate-400 font-medium">Trening na każdy dzień – od siłowni po szczyt</p>
           </div>
         </div>
       </div>
@@ -59,7 +59,7 @@
       <div class="flex items-start gap-3">
         <img src="icon-192.png" alt="" class="w-12 h-12 rounded-xl shrink-0">
         <div class="flex-1 min-w-0">
-          <p id="install-title" class="text-sm font-bold text-white">Zainstaluj Góry & Siła</p>
+          <p id="install-title" class="text-sm font-bold text-white">Zainstaluj W Formie</p>
           <p id="install-text" class="text-xs text-slate-300 mt-0.5">Ikonka na ekranie telefonu, pełny ekran i działanie bez internetu. Za darmo.</p>
           <button id="install-btn" onclick="installApp()" class="mt-3 px-4 py-2.5 bg-accent hover:bg-orange-600 text-white text-sm font-bold rounded-xl shadow-lg transition">📲 Zainstaluj aplikację</button>
         </div>
@@ -1501,7 +1501,7 @@
     /* ---------- Kopia zapasowa ---------- */
     function exportBackup() {
       const data = {
-        app: 'gory-sila', version: 1, exportedAt: new Date().toISOString(),
+        app: 'w-formie', version: 1, exportedAt: new Date().toISOString(),
         history: state.history, templates: state.templates, monthlyPlan: state.monthlyPlan,
         planStart: state.planStart, planDisciplines: state.planDisciplines, goal: state.goal,
         customExercises: state.customExercises, profile: state.profile
@@ -1509,7 +1509,7 @@
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
-      a.download = `gory-sila-kopia-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `w-formie-kopia-${new Date().toISOString().slice(0, 10)}.json`;
       document.body.appendChild(a); a.click(); a.remove();
       setTimeout(() => URL.revokeObjectURL(a.href), 1000);
     }
@@ -1941,7 +1941,7 @@
       const device = /iPhone|iPad/i.test(navigator.userAgent) ? 'iPhone/iPad'
         : /Android/i.test(navigator.userAgent) ? 'Android' : 'Komputer';
       const mode = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone ? 'zainstalowana' : 'w przeglądarce';
-      const subject = 'Góry & Siła – uwagi';
+      const subject = 'W Formie – uwagi';
       const body = `Cześć Piotrek,\n\n[Napisz, co działa, co nie działa albo czego brakuje]\n\n\n---\nUrządzenie: ${device}, aplikacja ${mode}`;
       location.href = `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     }
@@ -1986,7 +1986,7 @@
           : 'Instagram nie pozwala instalować aplikacji. Otwórz stronę w Chrome – tam zainstalujesz ją jednym kliknięciem.';
         btn.textContent = isIOS ? 'Pokaż jak' : '🌐 Otwórz w Chrome';
       } else {
-        title.textContent = 'Zainstaluj Góry & Siła';
+        title.textContent = 'Zainstaluj W Formie';
         text.textContent = 'Ikonka na ekranie telefonu, pełny ekran i działanie bez internetu. Za darmo.';
         btn.textContent = '📲 Zainstaluj aplikację';
       }
@@ -2032,7 +2032,7 @@
         return openInstallHelp([
           `Dotknij przycisku <b>Udostępnij</b> ${shareIcon} na dolnym pasku Safari.`,
           'Przewiń w dół i wybierz <b>„Do ekranu początkowego”</b>.',
-          'Dotknij <b>„Dodaj”</b> – ikonka Góry & Siła pojawi się na ekranie.'
+          'Dotknij <b>„Dodaj”</b> – ikonka W Formie pojawi się na ekranie.'
         ]);
       }
       openInstallHelp([

@@ -1,4 +1,4 @@
-/* Baza ćwiczeń – Góry & Siła
+/* Baza ćwiczeń – W Formie
    n = nazwa, d = dyscypliny (id), m = partia, tip = wskazówka techniki.
    Nazwy z domyślnych szablonów są tu bez zmian, żeby pasowały do historii. */
 window.EXERCISE_GROUPS = ['Nogi', 'Pośladki', 'Plecy', 'Klatka', 'Barki', 'Ręce', 'Core', 'Całe ciało', 'Kondycja', 'Mobilność'];
