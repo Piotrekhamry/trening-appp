@@ -34,6 +34,25 @@
     /* iPhone powiększa stronę przy polach z czcionką mniejszą niż 16px – stąd 16px */
     input, select, textarea { font-size: 16px !important; }
     body { padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); }
+    /* Status formy */
+    #form-badge.is-hot { background: rgba(249,115,22,.16); border-color: rgba(249,115,22,.65); box-shadow: 0 0 18px rgba(249,115,22,.35); }
+    #form-badge.is-warm { background: rgba(148,163,184,.12); border-color: rgba(148,163,184,.35); }
+    #form-badge.is-cold { background: rgba(56,189,248,.12); border-color: rgba(56,189,248,.5); }
+    .form-icon { display: inline-block; font-size: 22px; line-height: 1; }
+    .flame { transform-origin: 50% 90%; animation: flame-flicker 1.6s ease-in-out infinite; filter: drop-shadow(0 0 6px rgba(249,115,22,.85)); }
+    @keyframes flame-flicker {
+      0%, 100% { transform: scale(1) rotate(-2deg); filter: drop-shadow(0 0 5px rgba(249,115,22,.7)); }
+      25% { transform: scale(1.08, 1.14) rotate(3deg); filter: drop-shadow(0 0 9px rgba(251,191,36,.95)); }
+      50% { transform: scale(.96, 1.04) rotate(-3deg); }
+      75% { transform: scale(1.05, 1.1) rotate(2deg); filter: drop-shadow(0 0 8px rgba(249,115,22,.9)); }
+    }
+    .biceps { transform-origin: 30% 80%; animation: biceps-flex 1.4s ease-in-out infinite; }
+    @keyframes biceps-flex {
+      0%, 55%, 100% { transform: rotate(0) scale(1); }
+      20% { transform: rotate(-14deg) scale(1.18); }
+      35% { transform: rotate(-8deg) scale(1.1); }
+    }
+    @media (prefers-reduced-motion: reduce) { .flame, .biceps { animation: none; } }
     .chart-tip { position: absolute; pointer-events: none; transform: translate(-50%, -110%); white-space: nowrap; }
   </style>
 </head>
@@ -44,6 +63,8 @@
 <!-- BANER -->
     <div class="relative overflow-hidden rounded-2xl border border-cardBorder bg-cardBg mb-6 shadow-xl">
       <img src="image_3bed76.png" alt="W Formie" class="w-full h-40 object-cover object-center opacity-30">
+      <!-- Status formy: płomyk / biceps -->
+      <button id="form-badge" onclick="showFormInfo()" class="hidden absolute top-3 right-3 z-10 items-center gap-2 pl-2 pr-3 py-1.5 rounded-full border backdrop-blur-sm transition" aria-live="polite"></button>
       <div class="absolute inset-0 bg-gradient-to-t from-cardBg via-cardBg/60 to-transparent flex items-end p-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between w-full gap-4">
           <div>
@@ -872,7 +893,62 @@
       return { id: next, reason: `Ostatnio: ${discName(lastSplit.id)} (${agoText(daysAgo(lastSplit.ts))}). Teraz kolejny dzień planu: ${discName(next)}.` };
     }
 
+    /* ---------- Status formy ---------- */
+    function formStatus() {
+      const trainings = state.history.filter(h => entryDisc(h) && entryDisc(h) !== 'wolne').map(h => daysAgo(entryTs(h)));
+      if (!trainings.length) return null;
+      const sinceLast = Math.min(...trainings);
+      // zapisany dzień wolny (regeneracja) to też aktywność – nie jest „pominiętym” treningiem
+      const sinceActivity = Math.min(...state.history.filter(h => entryDisc(h)).map(h => daysAgo(entryTs(h))));
+      const inWindow = (from) => trainings.filter(d => d >= from && d < from + 7).length;
+      const week = inWindow(0);
+      // ile tygodni z rzędu (licząc od dziś wstecz) miało co najmniej 3 treningi
+      let weeks = 0;
+      while (weeks < 52 && inWindow(weeks * 7) >= 3) weeks++;
+      if (sinceActivity >= 3) return { level: 'cold', sinceLast, week, weeks };
+      if (week >= 3) return { level: 'hot', sinceLast, week, weeks };
+      return { level: 'warm', sinceLast, week, weeks };
+    }
+
+    function renderFormBadge() {
+      const el = document.getElementById('form-badge');
+      if (!el) return;
+      const f = formStatus();
+      el.classList.remove('is-hot', 'is-warm', 'is-cold');
+      if (!f) { el.classList.add('hidden'); el.classList.remove('flex'); return; }
+      const pl = (n) => n === 1 ? 'trening' : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) ? 'treningi' : 'treningów';
+      let icon, title, sub;
+      if (f.level === 'hot') {
+        icon = '<span class="form-icon flame">🔥</span>';
+        title = 'Jesteś w formie!';
+        sub = f.weeks >= 2 ? `${f.weeks}. tydzień z rzędu` : `${f.week} ${pl(f.week)} w 7 dni`;
+      } else if (f.level === 'cold') {
+        icon = '<span class="form-icon biceps">💪</span>';
+        title = 'Wróć do formy';
+        sub = `ostatni trening ${agoText(f.sinceLast)}`;
+      } else {
+        icon = '<span class="form-icon">⚡</span>';
+        title = 'Rozkręcasz się';
+        sub = `${f.week} ${pl(f.week)} w 7 dni – jeszcze ${3 - f.week} do formy`;
+      }
+      el.innerHTML = `${icon}<span class="text-left leading-tight"><span class="text-xs font-bold text-white block">${title}</span><span class="text-[10px] text-slate-300 block">${sub}</span></span>`;
+      el.classList.add('is-' + f.level, 'flex');
+      el.classList.remove('hidden');
+      el.dataset.level = f.level;
+    }
+
+    function showFormInfo() {
+      const f = formStatus();
+      if (!f) return;
+      showToast(f.level === 'hot'
+        ? 'Trzymasz rytm: min. 3 treningi w tygodniu i przerwy nie dłuższe niż 2 dni. Tak trzymaj!'
+        : f.level === 'cold'
+          ? 'Ponad 2 dni bez treningu. Nawet krótki trening przywróci płomyk 🔥'
+          : 'Zrób 3 treningi w ciągu 7 dni, a zapali się płomyk 🔥');
+    }
+
     function applySuggestion() {
+      renderFormBadge();
       const s = getSuggestion();
       state.suggestion = s;
       // Trening w toku ma pierwszeństwo – sugestia tylko się odświeża
@@ -2056,6 +2132,7 @@
         else { state.profile = 'gory'; askProfile = true; }
       }
       if (restoreDraft()) {
+        renderFormBadge();
         state.suggestion = getSuggestion();
         renderDisciplineSelector();
         renderWorkout();
