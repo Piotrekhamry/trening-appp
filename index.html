@@ -163,6 +163,12 @@
         </div>
       </section>
 
+      <!-- Data treningu (można wpisać trening po czasie) -->
+      <label class="flex items-center justify-between gap-3 bg-card border border-cardBorder rounded-xl p-3">
+        <span class="text-sm text-slate-300">Data treningu</span>
+        <input id="workout-date" type="date" class="bg-slate-900 border border-cardBorder rounded-lg p-2 text-sm text-white">
+      </label>
+
       <!-- Zapis Treningu -->
       <button onclick="finishWorkout()" class="w-full py-4 bg-accent hover:bg-emerald-600 text-white font-bold rounded-xl shadow-lg transition">
         Zakończ i Zapisz Trening
@@ -1368,10 +1374,20 @@
         .filter(ex => ex.sets.length > 0);
 
       const now = Date.now();
+      // Trening po czasie: wybrany dzień, ta sama godzina co teraz
+      const picked = document.getElementById('workout-date').value;
+      let ts = now, past = false;
+      if (picked && picked !== todayStr()) {
+        const t = new Date(now), d = new Date(picked + 'T00:00:00');
+        d.setHours(t.getHours(), t.getMinutes(), t.getSeconds());
+        ts = d.getTime(); past = true;
+      }
       const record = {
         id: now,
-        ts: now,
-        date: new Date(now).toLocaleDateString('pl-PL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
+        ts,
+        date: new Date(ts).toLocaleDateString('pl-PL', past
+          ? { day: 'numeric', month: 'short' }
+          : { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }),
         disciplineId: state.selectedDiscipline,
         discipline: discObj ? discObj.name : 'Trening',
         timeBased: isTimeBased,
@@ -1384,12 +1400,24 @@
       };
 
       state.history.unshift(record);
+      state.history.sort((a, b) => entryTs(b) - entryTs(a));   // najnowsze na początku, także po dopisaniu starszego
       saveHistory();
+      resetWorkoutDate();
       clearDraft();
       applySuggestion();
       showToast(`Zapisano! Następnym razem: ${discName(state.suggestion.id)}.`);
       switchTab('history');
     }
+
+    function todayStr() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+    function resetWorkoutDate() {
+      const el = document.getElementById('workout-date');
+      if (el) { el.max = todayStr(); el.value = todayStr(); }
+    }
+    resetWorkoutDate();
 
     function saveHistory() {
       localStorage.setItem('gs_history_v3', JSON.stringify(state.history));
